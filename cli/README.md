@@ -6,9 +6,11 @@ tool (`polinrider.html` / https://polinder.bedri.space), sharing the same detect
 
 ## Install
 Download the binary for your OS and put it on your PATH:
-- `polinrider.exe` — Windows
-- `polinrider-linux` — Linux (static, musl). After downloading: `chmod +x polinrider-linux`
-- macOS: `cargo build --release` on a Mac (see *Build*), or run via Rosetta/CI.
+- `polinrider-windows-x64.exe` — Windows
+- `polinrider-linux-x64` — Linux (static, musl). After downloading: `chmod +x polinrider-linux-x64`
+- `polinrider-macos-arm64` / `polinrider-macos-x64` — macOS (Apple Silicon / Intel). After downloading:
+  `chmod +x polinrider-macos-arm64 && xattr -d com.apple.quarantine polinrider-macos-arm64` (unsigned binary → Gatekeeper)
+- or build from source: `cargo build --release` (see *Build*).
 
 ## Use
 ```bash

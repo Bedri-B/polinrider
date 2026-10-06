@@ -30,8 +30,13 @@ polinrider scan ~/Projects --all-branches --me "Your Name"
 polinrider fix  ~/Projects --apply --commit
 polinrider iocs > iocs.json     # the shared IOC database
 ```
-Windows and Linux binaries are published in Releases; macOS builds with `cargo build --release` in `cli/`.
-See [`cli/README.md`](cli/README.md).
+Binaries for **Windows, Linux, macOS (Apple Silicon and Intel)** are built by CI and published in
+[Releases](https://github.com/Bedri-B/polinrider/releases) on every version tag. See [`cli/README.md`](cli/README.md).
+
+macOS note: downloaded binaries are unsigned, so Gatekeeper blocks them once. Either right-click → Open, or:
+```bash
+chmod +x polinrider-macos-arm64 && xattr -d com.apple.quarantine polinrider-macos-arm64
+```
 
 ## What it detects
 - **Config injection** — a ~30 KB obfuscated blob hidden after ~280 spaces on the `export default` line,
@@ -75,6 +80,11 @@ Campaign research: [OpenSourceMalware / PolinRider](https://github.com/OpenSourc
 [Abstract Security](https://www.abstract.security/blog/contagious-interview-tracking-the-vs-code-tasks-infection-vector),
 [JFrog Security Research](https://research.jfrog.com/post/hijacked-npm-vscode-tasks-blockchain/),
 and the GitHub community discussions that first documented the config-injection variant.
+
+## Contributing & branch policy
+`main` is protected: no force-pushes or history rewrites, linear history, and every change lands through a
+pull request that must pass CI (Rust build + HTML syntax + security audit). This is deliberate — the worm
+this project fights spreads by force-pushing amended commits.
 
 ## License
 MIT — see [LICENSE](LICENSE). Provided as-is; always review a dry run before committing fixes.

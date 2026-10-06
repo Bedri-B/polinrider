@@ -1,0 +1,32 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: HTML syntax check
+        run: |
+          node -e 'const fs=require("fs");const h=fs.readFileSync("polinrider.html","utf8");const b=[...h.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);b.forEach((s,i)=>fs.writeFileSync("_c"+i+".js",s));console.log("script blocks:",b.length)'
+          for f in _c*.js; do node --check "$f"; done; rm -f _c*.js
+      - name: Security audit (safe DOM, no external hosts)
+        run: |
+          test "$(grep -cE 'innerHTML|insertAdjacentHTML|outerHTML|document\.write|new Function' polinrider.html)" = 0
+          EXTRA=$(grep -oE 'https?://[A-Za-z0-9.-]+' polinrider.html | sort -u | grep -vE '^https://(api\.github\.com|github\.com)$|^http://www\.w3\.org$' || true)
+          if [ -n "$EXTRA" ]; then echo "unexpected external hosts: $EXTRA"; exit 1; fi
+      - name: Rust build
+        working-directory: cli
+        run: |
+          rustup show active-toolchain
+          cargo build --release --locked
+      - name: Smoke test
+        run: |
+          cli/target/release/polinrider --version
+          cli/target/release/polinrider iocs | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);if(!j.markers.length||!j.knownHashes.length)process.exit(1);console.log("iocs ok:",j.markers.length,"markers,",j.knownHashes.length,"known hashes")})'
