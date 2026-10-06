@@ -44,7 +44,7 @@ chmod +x polinrider-macos-arm64 && xattr -d com.apple.quarantine polinrider-maco
 - **VS Code autorun (TaskJacker)** — `.vscode/tasks.json` with `"runOn":"folderOpen"` and a hidden
   presentation running `curl | bash` or `node <disguised file>`; `settings.json` presets; `launch.json` abuse;
   disguised payloads in `.vscode` (judged by content, not name)
-- **Fake fonts** — JavaScript inside `.woff2`/`.ttf` under `public/`, `assets/`, `fonts/`
+- **Fake fonts** — JavaScript inside `.woff2`/`.ttf`/`.otf`/`.eot` and invented extensions like `.llf` under `public/`, `assets/`, `fonts/` (real binary fonts pass a magic-byte check)
 - **Artifacts** — the propagation scripts `temp_auto_push.bat` / `temp_interactive_push.bat` / `config.bat`, and `.gitignore` lines added to hide them
 - **Known payloads** — exact SHA-256 matches of payload files from the 2026-10 B2 wave
 - **Variants covered** — original `rmcej%otb%`/`_$_1e42`, rotated `Cot%3t=shtP`/`MDy`, variant A (`global.i='A8-…'`, also in `migrations/*.js`), and B2 (`global['!']='9-6516-2'` with a javascript-obfuscator `_0x…` string table, `jest.config.js`, `fa-solid-900.woff2` in decoy Font Awesome folders, forged commits from +0200)

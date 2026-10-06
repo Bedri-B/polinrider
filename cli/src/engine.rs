@@ -48,18 +48,19 @@ impl Default for Ioc {
             config_regex: r"(postcss|next|vite|tailwind|eslint|astro|vue|webpack|jest|svelte|nuxt|rollup|remix|drizzle|gridsome)\.config\.(js|cjs|mjs|ts)$".into(),
             env_regex: r"(^|/)\.env($|\.)".into(),
             vscode_regex: r"(^|/)\.vscode/(tasks|settings|launch)\.json$".into(),
-            vscode_exec_regex: r"curl\b|wget\b|powershell|Invoke-|\biex\b|\bnode\b|\bbash\b|\bsh\b|\bcmd\b|\|\s*(ba)?sh\b|base64|atob\(|\.(woff2?|ttf|dict|svg|png|jpe?g|css)\b|vercel\.app|onrender\.com|short\.gy".into(),
+            vscode_exec_regex: r"curl\b|wget\b|powershell|Invoke-|\biex\b|\bnode\b|\bbash\b|\bsh\b|\bcmd\b|\|\s*(ba)?sh\b|base64|atob\(|\.(woff2?|ttf|otf|eot|llf|fnt|dict|svg|png|jpe?g|css)\b|vercel\.app|onrender\.com|short\.gy".into(),
             vscode_aux_regex: r"(^|/)\.vscode/[^/]+\.(dict|txt|log|dat|bin)$".into(),
             artifact_regex: r"(^|/)(temp_auto_push\.bat|temp_interactive_push\.bat|config\.bat)$".into(),
             gitignore_regex: r"(^|/)\.gitignore$".into(),
             known_hashes: [
+                "3b572a613f5013a64e1877dfed3873f2bcbd52e5259b199d41e02c33840abbcb", // fa-solid-300.llf (cashier/backend kit, Sep 2026)
                 "7922bce938af965008c1481f5f47d6c85b09217e10147fa35979e8aa4585ff8d", // B2 jest.config.js
                 "586e1904c8e8d69ab58e9e1c77fc5e7a044d910bb57b3f3b8d587368b4f84d15", // B2 fake fa-solid-900.woff2
                 "d16f87b70496999cfbb907ff3a7693cdfea6db5ecd21d6faafbb8320530ff2a4", // B2 .vscode/tasks.json
                 "92823600a82bdc05b1474176504f94e725068852764577f58c9529dedb7c35ed", // B2 .vscode/tasks.json (variant)
                 "1abb6c799080b3641d88dc541d0eafbc5a8c153d05d482745191e8887a1debf5", // B2 .vscode/settings.json
             ].iter().map(|s| s.to_string()).collect(),
-            font_regex: r"(^|/)(public|static|assets|webfonts|fonts)/.*\.(woff2?|ttf)$".into(),
+            font_regex: r"(^|/)(public|static|assets|webfonts|fonts)/.*\.(woff2?|ttf|otf|eot|llf|fnt|bin|dat)$".into(),
             font_max_bytes: 524_288,
             script_regex: r"^(App|app|index)\.js$|(^|/)migrations/[^/]+\.(js|cjs|mjs|ts)$".into(),
             package_regex: r"(^|/)package\.json$".into(),
@@ -68,7 +69,7 @@ impl Default for Ioc {
                 "tailwindcss-typography-style", "tailwindcss-style-modify", "tailwindcss-animate-style", "jsonwebauth",
             ].iter().map(|s| s.to_string()).collect(),
             lifecycle_regex: r"\bnode\s+-e\b|curl\b|wget\b|powershell|Invoke-Expression|\biex\b|bash\s+-c|\|\s*(ba)?sh\b|base64\s+(-d|--decode)|certutil|bitsadmin".into(),
-            marker_regex: r#"A[0-9]-[0-9]{4}|C2[0-9]{5}A|RS2[0-9]{5}|_\$_[0-9a-f]{4,}|createRequire|global\['|function MDy\(|rmcej%otb%|Cot%3t=shtP|8-st[0-9]+|_0x[0-9a-f]{4,}|global\.i\s*=\s*['"][A-Z]?[0-9]-[0-9]{3,4}"#.into(),
+            marker_regex: r#"A[0-9]-[0-9]{4}|C2[0-9]{5}A|RS2[0-9]{5}|_\$_[0-9a-f]{4,}|createRequire|global\['|function MDy\(|rmcej%otb%|Cot%3t=shtP|8-st[0-9]+|_0x[0-9a-f]{4,}|global\.i\s*=\s*['"][A-Z]?[0-9]{1,2}(-[0-9]{3,4})?['"]"#.into(),
             markers: default_markers(),
             size_threshold: 8000,
             line_threshold: 400,
@@ -173,7 +174,7 @@ impl Engine {
             export_re: cs(r"export\s+default|module\.exports")?,
             blank3: cs(r"\n{3,}")?,
             pre_launch: ci(r#""preLaunchTask""#)?,
-            disguised_prog: ci(r#""(runtimeExecutable|program)"\s*:\s*"[^"]*\.(woff2?|ttf|dict|svg|png|jpe?g|css)""#)?,
+            disguised_prog: ci(r#""(runtimeExecutable|program)"\s*:\s*"[^"]*\.(woff2?|ttf|otf|eot|llf|fnt|dict|svg|png|jpe?g|css)""#)?,
             allow_auto: ci(r#""task\.allowAutomaticTasks"\s*:\s*"?(on|true)"?"#)?,
             trust_off: ci(r#""security\.workspace\.trust\.enabled"\s*:\s*false"#)?,
             ioc,

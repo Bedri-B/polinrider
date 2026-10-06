@@ -47,7 +47,7 @@ Exit code **2** means something is infected (handy in scripts/CI).
 ## What it detects
 Build-config injection (whitespace-padded blob or `atob` + fetch loader), `.env` droppers,
 `.vscode/tasks.json` autorun with hidden presentation, `settings.json` automatic-task presets,
-`launch.json` abuse, disguised payloads in `.vscode`, JavaScript hidden in `.woff2`/`.ttf`,
+`launch.json` abuse, disguised payloads in `.vscode`, JavaScript hidden in fake fonts (`.woff2`/`.ttf`/`.otf`/`.eot`/`.llf`, judged by magic bytes + known SHA-256),
 `temp_auto_push.bat` / `config.bat`, known malicious npm packages and install-time lifecycle scripts,
 and — with git — history pickaxe hits and foreign-timezone commits.
 
