@@ -1,0 +1,15 @@
+# build outputs & environments
+cli/target/
+cli/dist/
+.venv/
+__pycache__/
+*.pyc
+# generated / local
+deploy/site/
+*.log
+.playwright-mcp/
+# private incident data and working notes (never publish)
+AFFECTED_FILES.md
+polinrider.pre-codex.html
+CODEX_BRIEF.md
+codex_run.log

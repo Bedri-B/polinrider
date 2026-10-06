@@ -1,0 +1,431 @@
+//! Detection + fix engine.
+//!
+//! A faithful port of the detectors in `polinrider.html`, so the CLI and the web tool share one
+//! IOC database (this loads the exact JSON the web tool exports) and one set of rules.
+//! Nothing here ever executes repository content — it only reads and rewrites text.
+
+use regex::{Regex, RegexBuilder};
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+
+// Marker strings are assembled at compile time so this source never contains the literals.
+pub const DROP_KEY: &str = concat!("AUTH_API", "_KEY");
+pub const EVAL_MARK: &str = concat!("ev", "al(proxyInfo)");
+const B64SIG: &str = "aHR0cHM6Ly9hdXRoLWNvbi1maXJt";
+
+/// IOC database. Field names serialize as camelCase — identical to the web tool's export.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Ioc {
+    pub config_regex: String,
+    pub env_regex: String,
+    pub vscode_regex: String,
+    pub vscode_exec_regex: String,
+    pub vscode_aux_regex: String,
+    pub artifact_regex: String,
+    pub font_regex: String,
+    pub font_max_bytes: u64,
+    pub script_regex: String,
+    pub package_regex: String,
+    pub npm_packages: Vec<String>,
+    pub lifecycle_regex: String,
+    pub marker_regex: String,
+    pub markers: Vec<String>,
+    pub size_threshold: u64,
+    pub line_threshold: usize,
+    /// Committer timezones that are not yours (the amend/force-push tell). CLI-only.
+    pub foreign_tz: Vec<String>,
+}
+
+impl Default for Ioc {
+    fn default() -> Self {
+        Ioc {
+            config_regex: r"(postcss|next|vite|tailwind|eslint|astro|vue|webpack|jest|svelte|nuxt|rollup|remix|drizzle|gridsome)\.config\.(js|cjs|mjs|ts)$".into(),
+            env_regex: r"(^|/)\.env($|\.)".into(),
+            vscode_regex: r"(^|/)\.vscode/(tasks|settings|launch)\.json$".into(),
+            vscode_exec_regex: r"curl\b|wget\b|powershell|Invoke-|\biex\b|\bnode\b|\bbash\b|\bsh\b|\bcmd\b|\|\s*(ba)?sh\b|base64|atob\(|\.(woff2?|ttf|dict|svg|png|jpe?g|css)\b|vercel\.app|onrender\.com|short\.gy".into(),
+            vscode_aux_regex: r"(^|/)\.vscode/[^/]+\.(dict|txt|log|dat|bin)$".into(),
+            artifact_regex: r"(^|/)(temp_auto_push\.bat|config\.bat)$".into(),
+            font_regex: r"(^|/)(public|static|assets|webfonts|fonts)/.*\.(woff2?|ttf)$".into(),
+            font_max_bytes: 524_288,
+            script_regex: r"^(App|app|index)\.js$".into(),
+            package_regex: r"(^|/)package\.json$".into(),
+            npm_packages: [
+                "tailwindcss-style-animate", "tailwind-mainanimation", "tailwind-autoanimation", "tailwind-animationbased",
+                "tailwindcss-typography-style", "tailwindcss-style-modify", "tailwindcss-animate-style", "jsonwebauth",
+            ].iter().map(|s| s.to_string()).collect(),
+            lifecycle_regex: r"\bnode\s+-e\b|curl\b|wget\b|powershell|Invoke-Expression|\biex\b|bash\s+-c|\|\s*(ba)?sh\b|base64\s+(-d|--decode)|certutil|bitsadmin".into(),
+            marker_regex: r"A[0-9]-[0-9]{4}|C2[0-9]{5}A|RS2[0-9]{5}|_\$_[0-9a-f]{4,}|createRequire|global\['|function MDy\(|rmcej%otb%|Cot%3t=shtP|8-st[0-9]+".into(),
+            markers: default_markers(),
+            size_threshold: 8000,
+            line_threshold: 400,
+            foreign_tz: vec!["-06:00".into(), "+02:00".into()],
+        }
+    }
+}
+
+fn default_markers() -> Vec<String> {
+    let mut m: Vec<String> = [
+        // loader strings
+        "A9-4091", "A4-1928", "RS260605", DROP_KEY, "auth-con-firm", B64SIG, EVAL_MARK, "rmcej%otb%", "Cot%3t=shtP",
+        "_$_1e42", "LAST_COMMIT_DATE", "temp_auto_push", "Sec-V",
+        // XOR keys and template fingerprint
+        "2[gWfGj;<:-93Z^C", "m6:tTh^D)cBz?NM]", "ThZG+0jfXE6VAGOJ", "e9b53a7c-2342-4b15-b02d-bd8b8f6a03f9",
+        // blockchain dead-drops (ETH / TRON / Aptos)
+        "a322e5f3d311d3080e6f0121063e9adc2490ef1a", "0xE1f2395ee43e45A1556EC6438a88c31B83493103",
+        "TMfKQEd7TJJa5xNZJZ2Lep838vrzrs7mAP", "TXfxHUet9pJVU1BgVkBAbrES4YUc1nGzcG", "TA48dct6rFW8BXsiLAtjFaVFoSuryMjD3v",
+        "0xbe037400670fbf1c32364f762975908dc43eeb38759263e7dfcdabc76380811e",
+        "0x3f0e5781d0855fb460661ac63257376db1941b2bb522499e4757ecb3ebd5dce3",
+        "0x533b2dbcaeff19cd1f799234a27b578d713d8fcaa341b7501e4526106483e0b1",
+        "api.trongrid.io", "fullnode.mainnet.aptoslabs.com", "bsc-dataseed", "bsc-rpc.publicnode.com", "trongrid",
+        // C2 / staging hosts
+        "260120.vercel.app", "default-configuration.vercel.app", "vscode-settings-bootstrap.vercel.app",
+        "vscode-settings-config.vercel.app", "vscode-bootstrapper.vercel.app", "vscode-load-config.vercel.app",
+        "vscode-toolkit-bootstrap.vercel.app", "vscodesettingstask.vercel.app", "vscode-config-settings.vercel.app",
+        "vscode-extension-260120.vercel.app", "regioncheck.xyz", "vscodeconfig.com", "vscode-load.onrender.com",
+        "jsonkeeper.com", "jsonsilo.com", "npoint.io", "npm-cache.com",
+        // C2 IPs
+        "166.88.54.158", "166.88.134.62", "198.105.127.210", "23.27.202.27", "154.91.0.103", "136.0.9.8", "188.43.33.249",
+        // Telegram exfil bot token prefix
+        "7870147428:AAG",
+    ].iter().map(|s| s.to_string()).collect();
+    m.dedup();
+    m
+}
+
+fn ci(re: &str) -> Result<Regex, String> {
+    RegexBuilder::new(re).case_insensitive(true).build().map_err(|e| format!("invalid regex `{}`: {}", re, e))
+}
+fn cs(re: &str) -> Result<Regex, String> {
+    Regex::new(re).map_err(|e| format!("invalid regex `{}`: {}", re, e))
+}
+
+pub fn fmt_b(n: u64) -> String {
+    if n >= 1_048_576 { format!("{:.1} MB", n as f64 / 1_048_576.0) }
+    else if n >= 1024 { format!("{:.1} KB", n as f64 / 1024.0) }
+    else { format!("{} B", n) }
+}
+
+pub struct Engine {
+    pub ioc: Ioc,
+    cfg: Regex, env: Regex, vsc: Regex, vsc_exec: Regex, aux: Regex, art: Regex, font: Regex,
+    script: Regex, pkg: Regex, lifecycle: Regex, marker: Regex,
+    run_on: Regex, hidden: Regex, padded: Regex, js_font: Regex, hexrun: Regex, code_aux: Regex,
+    iife_start: Regex, iife_end: Regex, ws80: Regex, import_dotenv: Regex, cr_import: Regex, cr_const: Regex,
+    require_call: Regex, export_re: Regex, blank3: Regex,
+    pre_launch: Regex, disguised_prog: Regex, allow_auto: Regex, trust_off: Regex,
+}
+
+/// What the fixer intends to do with one file.
+pub enum Plan {
+    Delete(String),
+    Review(String),
+    Rewrite { content: String, method: String },
+}
+
+/// Final decision after safety gates.
+pub struct Outcome {
+    pub method: String,
+    pub result: String,
+    pub action: Action,
+}
+pub enum Action { None, Delete, Write(String) }
+
+impl Engine {
+    pub fn new(ioc: Ioc) -> Result<Self, String> {
+        Ok(Engine {
+            cfg: ci(&ioc.config_regex)?, env: ci(&ioc.env_regex)?, vsc: ci(&ioc.vscode_regex)?,
+            vsc_exec: ci(&ioc.vscode_exec_regex)?, aux: ci(&ioc.vscode_aux_regex)?, art: ci(&ioc.artifact_regex)?,
+            font: ci(&ioc.font_regex)?, script: ci(&ioc.script_regex)?, pkg: ci(&ioc.package_regex)?,
+            lifecycle: ci(&ioc.lifecycle_regex)?, marker: cs(&ioc.marker_regex)?,
+            run_on: ci(r#""runOn"\s*:\s*"folderOpen""#)?,
+            hidden: ci(r#""hide"\s*:\s*true|"reveal"\s*:\s*"(never|silent)"|"echo"\s*:\s*false|"close"\s*:\s*true"#)?,
+            padded: cs(r"\S[ \t]{80,}\S")?,
+            js_font: cs(r"\b(function|require|const|var|let|return|process)\b|=>|\.(call|apply)\(")?,
+            hexrun: ci(r"[0-9a-f]{200,}")?,
+            code_aux: cs(r"\brequire\s*\(|\bfunction\b|=>|\bprocess\.|child_process|Buffer\.from|\bglobal\[|https?://")?,
+            iife_start: cs(r"^\s*\(\s*(async\s*)?(function\b|\(\s*\)\s*=>)")?,
+            iife_end: cs(r"^\s*\}\s*\)\s*\(\s*\)\s*;?\s*$")?,
+            ws80: cs(r"\s{80,}.*$")?,
+            import_dotenv: cs(r#"^\s*import\s+['"]dotenv/config['"];?\s*$"#)?,
+            cr_import: cs(r"import[ {].*createRequire.*from .module.")?,
+            cr_const: cs(r"const +require *= *createRequire")?,
+            require_call: cs(r"require\s*\(")?,
+            export_re: cs(r"export\s+default|module\.exports")?,
+            blank3: cs(r"\n{3,}")?,
+            pre_launch: ci(r#""preLaunchTask""#)?,
+            disguised_prog: ci(r#""(runtimeExecutable|program)"\s*:\s*"[^"]*\.(woff2?|ttf|dict|svg|png|jpe?g|css)""#)?,
+            allow_auto: ci(r#""task\.allowAutomaticTasks"\s*:\s*"?(on|true)"?"#)?,
+            trust_off: ci(r#""security\.workspace\.trust\.enabled"\s*:\s*false"#)?,
+            ioc,
+        })
+    }
+
+    // ---- path classifiers (paths use forward slashes, relative to the repo/folder root) ----
+    pub fn is_cfg(&self, p: &str) -> bool { self.cfg.is_match(p) }
+    pub fn is_env(&self, p: &str) -> bool { self.env.is_match(p) }
+    pub fn is_vscode(&self, p: &str) -> bool { self.vsc.is_match(p) }
+    pub fn is_vscode_aux(&self, p: &str) -> bool { self.aux.is_match(p) }
+    pub fn is_artifact(&self, p: &str) -> bool { self.art.is_match(p) }
+    pub fn is_font(&self, p: &str) -> bool { self.font.is_match(p) }
+    pub fn is_script(&self, p: &str) -> bool { self.script.is_match(p) }
+    pub fn is_pkg(&self, p: &str) -> bool { self.pkg.is_match(p) }
+    pub fn interesting(&self, p: &str) -> bool {
+        self.is_cfg(p) || self.is_env(p) || self.is_vscode(p) || self.is_vscode_aux(p) || self.is_artifact(p)
+            || self.is_font(p) || self.is_script(p) || self.is_pkg(p)
+    }
+
+    fn longest_line(c: &str) -> usize { c.split('\n').map(|l| l.chars().count()).max().unwrap_or(0) }
+    fn strip_marker(s: String) -> String { s.trim_start_matches("MARKER:").trim().to_string() }
+
+    /// Core text detector: markers, obfuscation regex, size and long-line rules.
+    pub fn signal(&self, content: &str, size: u64, cfg: bool) -> String {
+        if cfg && size > self.ioc.size_threshold { return format!("SIZE-ANOMALY({})", fmt_b(size)); }
+        let mut hits: Vec<String> = Vec::new();
+        for m in self.marker.find_iter(content) {
+            let s = m.as_str().to_string();
+            if !hits.contains(&s) { hits.push(s); }
+        }
+        for m in &self.ioc.markers {
+            if !m.is_empty() && content.contains(m.as_str()) && !hits.contains(m) { hits.push(m.clone()); }
+        }
+        let longest = Self::longest_line(content);
+        if cfg && longest > self.ioc.line_threshold { hits.push(format!("LONGLINE({})", longest)); }
+        if hits.is_empty() { String::new() } else { format!("MARKER: {}", hits.iter().take(4).cloned().collect::<Vec<_>>().join(", ")) }
+    }
+
+    /// `.vscode/{tasks,settings,launch}.json` — TaskJacker autorun dropper.
+    pub fn vscode_signal(&self, path: &str, content: &str) -> String {
+        let base = path.rsplit('/').next().unwrap_or(path).to_lowercase();
+        let mut h: Vec<String> = Vec::new();
+        let folder_open = self.run_on.is_match(content);
+        let hidden = self.hidden.is_match(content);
+        let exec = self.vsc_exec.is_match(content);
+        let padded = self.padded.is_match(content);
+        let m = Self::strip_marker(self.signal(content, content.len() as u64, false));
+        if base == "tasks.json" {
+            if folder_open {
+                h.push("runOn folderOpen".into());
+                if exec { h.push("shell/node exec".into()); }
+                if hidden { h.push("hidden task".into()); }
+                if padded { h.push("whitespace-padded".into()); }
+                if !m.is_empty() { h.push(m); }
+                return format!("VSCODE-AUTORUN: {}", h.join(", "));
+            }
+            if !m.is_empty() { h.push(m); }
+            if exec && hidden { h.push("hidden shell task".into()); }
+            return if h.is_empty() { String::new() } else { format!("VSCODE-AUTORUN: {}", h.join(", ")) };
+        }
+        if base == "settings.json" {
+            if self.allow_auto.is_match(content) { h.push("task.allowAutomaticTasks preset".into()); }
+            if self.trust_off.is_match(content) { h.push("workspace trust disabled".into()); }
+            if !m.is_empty() { h.push(m); }
+            return if h.is_empty() { String::new() } else { format!("VSCODE-SETTINGS: {}", h.join(", ")) };
+        }
+        if self.pre_launch.is_match(content) && exec { h.push("preLaunchTask + exec".into()); }
+        if self.disguised_prog.is_match(content) { h.push("runs disguised file".into()); }
+        if !m.is_empty() { h.push(m); }
+        if h.is_empty() { String::new() } else { format!("VSCODE-LAUNCH: {}", h.join(", ")) }
+    }
+
+    /// Fonts under asset folders: real fonts start with a binary magic; the campaign hides JS text in them.
+    pub fn font_signal(&self, bytes: &[u8]) -> String {
+        if bytes.len() >= 4 {
+            let head = &bytes[..4];
+            if head == b"wOF2" || head == b"wOFF" || head == b"OTTO" || head == b"true" || head == b"ttcf" || head == [0, 1, 0, 0] {
+                return String::new();
+            }
+        }
+        let sample = &bytes[..bytes.len().min(4000)];
+        if sample.is_empty() { return String::new(); }
+        let printable = sample.iter().filter(|&&c| (32..127).contains(&c) || c == 9 || c == 10 || c == 13).count();
+        if (printable as f64) / (sample.len() as f64) < 0.9 { return String::new(); }
+        let text = String::from_utf8_lossy(bytes).to_string();
+        let compact: String = text.chars().filter(|c| !c.is_whitespace()).collect();
+        let js = self.js_font.is_match(&text) || self.hexrun.is_match(&compact);
+        let m = Self::strip_marker(self.signal(&text, text.len() as u64, false));
+        if js || !m.is_empty() {
+            format!("FAKE-FONT: text/JavaScript inside font file{}", if m.is_empty() { String::new() } else { format!(", {}", m) })
+        } else { String::new() }
+    }
+
+    /// Non-JSON files under `.vscode`: a real dictionary/log is plain words; a disguised payload is code/hex.
+    pub fn disguised_signal(&self, content: &str) -> String {
+        let compact: String = content.chars().filter(|c| !c.is_whitespace()).collect();
+        let code = self.code_aux.is_match(content) || self.hexrun.is_match(&compact);
+        let ln = Self::longest_line(content);
+        let m = Self::strip_marker(self.signal(content, content.len() as u64, false));
+        if !(code || !m.is_empty() || ln > self.ioc.line_threshold) { return String::new(); }
+        let mut s = String::from("ARTIFACT: disguised payload in .vscode");
+        if !m.is_empty() { s.push_str(&format!(", {}", m)); }
+        if ln > self.ioc.line_threshold { s.push_str(&format!(", LONGLINE({})", ln)); }
+        s
+    }
+
+    /// `package.json`: known malicious dependencies and install-time lifecycle scripts.
+    pub fn pkg_signal(&self, content: &str) -> String {
+        let mut h: Vec<String> = Vec::new();
+        if let Ok(j) = serde_json::from_str::<Value>(content) {
+            for k in ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"] {
+                if let Some(Value::Object(d)) = j.get(k) {
+                    for n in &self.ioc.npm_packages { if d.contains_key(n) { h.push(format!("pkg {}", n)); } }
+                }
+            }
+            if let Some(Value::Object(s)) = j.get("scripts") {
+                for k in ["preinstall", "install", "postinstall", "prepare", "prepublish"] {
+                    if let Some(Value::String(v)) = s.get(k) { if self.lifecycle.is_match(v) { h.push(format!("script {}", k)); } }
+                }
+            }
+        }
+        let m = Self::strip_marker(self.signal(content, content.len() as u64, false));
+        if !m.is_empty() { h.push(m); }
+        if h.is_empty() { return String::new(); }
+        let kind = if h.iter().any(|x| x.starts_with("pkg ")) { "NPM-PACKAGE: " }
+            else if h.iter().any(|x| x.starts_with("script ")) { "LIFECYCLE-SCRIPT: " } else { "MARKER: " };
+        format!("{}{}", kind, h.join(", "))
+    }
+
+    /// Root `App.js` / `index.js` (only inspected when unusually large): long line or markers, never size alone.
+    pub fn script_signal(&self, content: &str, size: u64) -> String {
+        let ln = Self::longest_line(content);
+        let m = self.signal(content, size, false);
+        if ln > self.ioc.line_threshold {
+            if m.is_empty() { format!("MARKER: LONGLINE({})", ln) } else { format!("{}, LONGLINE({})", m, ln) }
+        } else { m }
+    }
+
+    /// Classify one file given its path, size and (optionally) content/bytes.
+    /// `read` is called lazily only when content is needed.
+    pub fn classify<F>(&self, path: &str, size: u64, mut read: F) -> String
+    where F: FnMut() -> Option<Vec<u8>> {
+        if self.is_artifact(path) { return "ARTIFACT: propagation script (temp_auto_push)".into(); }
+        let cfg = self.is_cfg(path);
+        if cfg && size > self.ioc.size_threshold { return format!("SIZE-ANOMALY({})", fmt_b(size)); }
+        let font = self.is_font(path);
+        if font && size > self.ioc.font_max_bytes { return String::new(); }
+        let scr = self.is_script(path);
+        if scr && !cfg && size <= self.ioc.size_threshold { return String::new(); }
+        let bytes = match read() { Some(b) => b, None => return "WARN: unable to read file".into() };
+        if font { return self.font_signal(&bytes); }
+        let text = String::from_utf8_lossy(&bytes).to_string();
+        if self.is_vscode_aux(path) { return self.disguised_signal(&text); }
+        if self.is_vscode(path) { return self.vscode_signal(path, &text); }
+        if self.is_pkg(path) { return self.pkg_signal(&text); }
+        if scr && !cfg { return self.script_signal(&text, size); }
+        self.signal(&text, size, cfg)
+    }
+
+    // ---- fix ----
+
+    fn has_marker(&self, line: &str) -> bool {
+        self.ioc.markers.iter().any(|m| !m.is_empty() && line.contains(m.as_str())) || self.marker.is_match(line)
+    }
+
+    /// Rebuild a clean config when no clean historical version exists. Handles both variants:
+    /// whitespace-padded blob (drop 80+-space runs / payload-length lines / injected createRequire prelude)
+    /// and the auth-con-firm loader (cut the statement block containing an IOC marker + its orphaned imports).
+    pub fn reconstruct(&self, c: &str) -> String {
+        let mut lines: Vec<String> = c.split('\n')
+            .map(|l| self.ws80.replace(l, "").to_string())
+            .filter(|l| l.chars().count() <= self.ioc.line_threshold)
+            .collect();
+        let mut i = 0usize;
+        while i < lines.len() {
+            if !self.has_marker(&lines[i]) { i += 1; continue; }
+            let (mut s, mut e) = (i, i);
+            while s > 0 && i - s < 60 && !self.iife_start.is_match(&lines[s]) { s -= 1; }
+            while e + 1 < lines.len() && e - i < 60 && !self.iife_end.is_match(&lines[e]) { e += 1; }
+            if self.iife_start.is_match(&lines[s]) && self.iife_end.is_match(&lines[e]) {
+                lines.drain(s..=e); i = s;            // cut the enclosing IIFE
+            } else {
+                lines.remove(i);                       // fallback: cut the marker line
+            }
+        }
+        let joined = lines.join("\n");
+        let fetch_refs = joined.matches("node-fetch").count();
+        let lines: Vec<String> = lines.into_iter()
+            .filter(|l| !self.import_dotenv.is_match(l) && !(fetch_refs == 1 && l.contains("node-fetch")))
+            .collect();
+        let rest: Vec<&String> = lines.iter().filter(|l| !self.cr_import.is_match(l) && !self.cr_const.is_match(l)).collect();
+        let rest_txt = rest.iter().map(|s| s.as_str()).collect::<Vec<_>>().join("\n");
+        let out = if lines.iter().any(|l| l.contains("createRequire")) && !self.require_call.is_match(&rest_txt) { rest_txt } else { lines.join("\n") };
+        self.blank3.replace_all(&out, "\n\n").to_string()
+    }
+
+    fn strip_package(&self, cur: &str) -> Plan {
+        let mut j: Value = match serde_json::from_str(cur) { Ok(v) => v, Err(_) => return Plan::Review("manual review".into()) };
+        let mut changed = false;
+        for k in ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"] {
+            if let Some(Value::Object(d)) = j.get_mut(k) {
+                for n in &self.ioc.npm_packages { if d.remove(n).is_some() { changed = true; } }
+            }
+        }
+        if let Some(Value::Object(s)) = j.get_mut("scripts") {
+            let keys: Vec<String> = s.keys().cloned().collect();
+            for k in keys {
+                if ["preinstall", "install", "postinstall", "prepare", "prepublish"].contains(&k.as_str()) {
+                    if let Some(Value::String(v)) = s.get(&k) { if self.lifecycle.is_match(v) { s.remove(&k); changed = true; } }
+                }
+            }
+        }
+        if !changed { return Plan::Review("manual review".into()); }
+        let mut out = serde_json::to_string_pretty(&j).unwrap_or_else(|_| cur.to_string());
+        if cur.ends_with('\n') { out.push('\n'); }
+        Plan::Rewrite { content: out, method: "strip package.json".into() }
+    }
+
+    /// Decide how to clean one file. `history` yields (sha, bytes) of older versions, newest first.
+    pub fn plan(&self, path: &str, sig: &str, cur: &str, history: Option<&dyn Fn() -> Vec<(String, Vec<u8>)>>) -> Plan {
+        if self.is_artifact(path) || sig.starts_with("FAKE-FONT") || sig.starts_with("ARTIFACT") {
+            return Plan::Delete("delete file".into());
+        }
+        if self.is_vscode(path) {
+            let base = path.rsplit('/').next().unwrap_or(path).to_lowercase();
+            return if base == "tasks.json" && sig.starts_with("VSCODE-AUTORUN") { Plan::Delete("delete tasks.json".into()) }
+                   else { Plan::Review("manual review".into()) };
+        }
+        if self.is_pkg(path) { return self.strip_package(cur); }
+        if self.is_env(path) {
+            let kept: Vec<&str> = cur.split('\n').filter(|l| !l.contains(DROP_KEY)).collect();
+            return Plan::Rewrite { content: kept.join("\n"), method: "strip dropper".into() };
+        }
+        if self.is_script(path) && !self.is_cfg(path) { return Plan::Review("manual review".into()); }
+        if let Some(h) = history {
+            for (sha, bytes) in h() {
+                let t = String::from_utf8_lossy(&bytes).to_string();
+                let sz = bytes.len() as u64;
+                if sz <= self.ioc.size_threshold && self.signal(&t, sz, true).is_empty() {
+                    let short: String = sha.chars().take(7).collect();
+                    return Plan::Rewrite { content: t, method: format!("restore {}", short) };
+                }
+            }
+        }
+        Plan::Rewrite { content: self.reconstruct(cur), method: "reconstruct".into() }
+    }
+
+    /// Apply the safety gates: never call a file clean, and never write a copy, while detectors still fire.
+    pub fn evaluate(&self, path: &str, plan: Plan, cur: &str, cur_size: u64) -> Outcome {
+        match plan {
+            Plan::Delete(m) => Outcome { method: m, result: format!("delete ({})", fmt_b(cur_size)), action: Action::Delete },
+            Plan::Review(m) => Outcome { method: m, result: "Review manually — not auto-fixed".into(), action: Action::None },
+            Plan::Rewrite { content, method } => {
+                let still_bad = !self.signal(&content, content.len() as u64, self.is_cfg(path)).is_empty();
+                if content == cur {
+                    return if still_bad {
+                        Outcome { method: "manual review".into(), result: "Could not auto-clean — review manually".into(), action: Action::None }
+                    } else {
+                        Outcome { method, result: "already clean".into(), action: Action::None }
+                    };
+                }
+                if still_bad {
+                    return Outcome { method, result: "Cleaned copy still matches IOCs — review manually (not written)".into(), action: Action::None };
+                }
+                if self.export_re.is_match(cur) && !self.export_re.is_match(&content) {
+                    return Outcome { method: "manual review".into(), result: "Cleaning would remove the config's export — review manually (not written)".into(), action: Action::None };
+                }
+                let result = format!("{} → {}", fmt_b(cur_size), fmt_b(content.len() as u64));
+                Outcome { method, result, action: Action::Write(content) }
+            }
+        }
+    }
+}

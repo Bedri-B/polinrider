@@ -1,0 +1,10 @@
+# PolinRider Control Panel — dependencies
+# Install into a CLEAN virtual environment to avoid version clashes:
+#   python -m venv .venv
+#   .venv/Scripts/activate        (Windows)   |   source .venv/bin/activate  (mac/linux)
+#   pip install -r requirements.txt
+#   python polinrider_app.py
+#
+# gradio pulls a self-consistent fastapi/starlette/uvicorn set on its own.
+# Pinned to a stable major to keep the shared app reproducible.
+gradio>=5,<7

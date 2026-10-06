@@ -1,0 +1,14 @@
+# PolinRider — static single-page tool served by a Cloudflare Worker (assets only).
+# Deploy:  cd deploy && wrangler deploy
+name = "polinder"
+account_id = "85c192571835bea478de5d69aaaf70bf"
+compatibility_date = "2026-09-01"
+
+[assets]
+directory = "./site"
+html_handling = "auto-trailing-slash"
+not_found_handling = "single-page-application"
+
+[[routes]]
+pattern = "polinder.bedri.space"
+custom_domain = true

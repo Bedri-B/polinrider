@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="A private, browser-based workspace to detect and remove the PolinRider / auth-con-firm GitHub worm.">
+<title>PolinRider · Repository security</title>
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('pr2_theme'))||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark')}catch(e){document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}</script>
+<style>
+:root{color-scheme:dark;--bg:#0d1317;--side:#10191e;--card:#151f25;--card2:#1a272e;--field:#101a20;--fg:#edf4f5;--fg2:#b3c2c9;--fg3:#8a9fa9;--line:#29383f;--line2:#3c5059;--acc:#73e2c0;--acc-hover:#95eed1;--accfg:#102a22;--acc-bg:#1a3933;--red:#ff9a9d;--red-bg:#3c262c;--amber:#ecc17f;--amber-bg:#392f22;--green:#73e2b4;--green-bg:#1b352c;--blue:#8dbff2;--blue-bg:#203141;--shadow:0 6px 22px #0000000a;--r:14px;--r2:8px}
+:root[data-theme="light"]{color-scheme:light;--bg:#f5f7f7;--side:#fff;--card:#fff;--card2:#f3f6f6;--field:#fbfcfc;--fg:#1b2c34;--fg2:#4d626b;--fg3:#627780;--line:#dfe7e8;--line2:#b8c9cd;--acc:#146951;--acc-hover:#0d5541;--accfg:#fff;--acc-bg:#e8f5ef;--red:#b93242;--red-bg:#fff0f1;--amber:#95601c;--amber-bg:#fff6e8;--green:#187049;--green-bg:#eaf6ee;--blue:#2a629c;--blue-bg:#edf4fd;--shadow:0 5px 20px #273e4805}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}button,input,textarea,select{font:inherit}button,a,input,textarea{ -webkit-tap-highlight-color:transparent}button{cursor:pointer}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}button{color:inherit}button:disabled{opacity:.45;cursor:not-allowed;transform:none!important}button,input,textarea,select{transition:background .16s,border-color .16s,box-shadow .16s}button:focus-visible,a:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--acc);outline-offset:4px}input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 16%,transparent)}::selection{background:var(--acc);color:var(--accfg)}svg{display:inline-block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;vertical-align:middle}.icons{position:absolute;width:0;height:0;overflow:hidden}.mono,code{font-family:"Cascadia Code","SFMono-Regular",Consolas,monospace;font-size:.9em}code{padding:2px 5px;background:var(--card2);border-radius:4px;color:var(--fg2)}.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}[hidden]{display:none!important}.skip-link{position:fixed;left:16px;top:-80px;background:var(--acc);color:var(--accfg);z-index:100;padding:10px 18px;border-radius:8px}.skip-link:focus{top:12px}
+.sidebar{position:fixed;inset:0 auto 0 0;width:222px;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:29px 20px;z-index:30}.brand{display:flex;gap:11px;align-items:center;color:var(--fg);font-size:21px;font-weight:700;letter-spacing:-.7px;text-decoration:none}.brand:hover{text-decoration:none}.brand-mark{display:grid;place-items:center;width:35px;height:39px;background:var(--acc-bg);color:var(--acc);border:1px solid color-mix(in srgb,var(--acc) 25%,var(--line));border-radius:10px}.brand-mark svg{width:24px;height:24px}.brand small{display:block;font-size:9px;line-height:1.5;letter-spacing:1.75px;font-weight:600;color:var(--fg3);margin-top:1px}.nav-label{font-size:10px;font-weight:650;letter-spacing:1.6px;color:var(--fg3);margin:48px 12px 12px}.sidenav{display:grid;gap:5px}.nav-item{border:1px solid transparent;background:transparent;display:flex;gap:12px;align-items:center;text-align:left;padding:11px 12px;border-radius:8px;font-size:13px;font-weight:550;color:var(--fg2);width:100%}.nav-item:hover{background:var(--card2);color:var(--fg)}.nav-item.active{background:var(--acc-bg);color:var(--acc);border-color:color-mix(in srgb,var(--acc) 10%,var(--line))}.nav-item.active:after{content:"";width:5px;height:5px;border-radius:50%;background:var(--acc);margin-left:auto}.sidenav .nav-label{margin-top:26px}.sidebar-bottom{margin-top:auto}.local-card{border:1px solid var(--line);border-radius:10px;padding:14px;font-size:11px;color:var(--fg3);background:var(--card)}.local-card b{display:flex;gap:7px;align-items:center;font-size:12px;font-weight:600;color:var(--fg2);margin-bottom:5px}.local-card svg{width:15px;height:15px;color:var(--acc)}.version{display:flex;justify-content:space-between;font-size:10px;color:var(--fg3);margin:17px 3px 0;letter-spacing:.2px}
+.workspace{margin-left:222px;min-height:100vh}.topbar{height:77px;padding:0 34px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:20px;background:var(--bg)}.breadcrumb{font-size:12px;color:var(--fg3);display:flex;align-items:center;gap:11px}.breadcrumb strong{font-weight:500;color:var(--fg2)}.breadcrumb svg{width:14px;height:14px}.grow{flex:1}.top-tools{display:flex;align-items:center;gap:17px}.rate{display:grid;grid-template-columns:auto auto;gap:0 8px;font-size:10px;align-items:center;color:var(--fg3)}.rate b{font-size:11px;color:var(--fg2);font-weight:500;font-variant-numeric:tabular-nums}.rate-track{height:3px;border-radius:3px;background:var(--line);grid-column:1/-1;margin-top:5px;width:100%;overflow:hidden}.rate-track i{display:block;width:0;height:100%;background:var(--acc);transition:width .3s}.pill{display:inline-flex;align-items:center;gap:7px;color:var(--fg2);font-size:11px;white-space:nowrap}.pill i,.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--fg3)}.pill.ok i{background:var(--green);box-shadow:0 0 0 3px var(--green-bg)}.iconbtn{display:inline-grid;place-items:center;width:34px;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg2)}.iconbtn:hover{background:var(--card2);border-color:var(--line2)}.iconbtn svg{width:17px;height:17px}.sun{display:none}[data-theme="light"] .sun{display:block}[data-theme="light"] .moon{display:none}
+main{max-width:1512px;margin:auto;padding:33px 34px 25px}.page-heading{display:flex;align-items:flex-start;gap:18px;margin-bottom:28px}.eyebrow{text-transform:uppercase;letter-spacing:1.65px;font-size:10px;font-weight:650;color:var(--fg3);margin:0 0 9px}.page-heading h1{font-size:31px;letter-spacing:-1.1px;font-weight:650;line-height:1.25;margin:0 0 9px}.page-heading p:not(.eyebrow){font-size:13px;color:var(--fg2);margin:0;max-width:660px}.local-tag{margin:21px 0 0 auto;display:flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;color:var(--fg3);font-size:10px;white-space:nowrap}.local-tag svg{width:13px;height:13px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);padding:7px;background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:26px;box-shadow:var(--shadow)}.step{position:relative;display:flex;align-items:center;gap:12px;text-align:left;padding:12px 16px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--fg3)}.step:not(:last-child):after{content:"";position:absolute;right:-2px;height:22px;width:1px;background:var(--line)}.step.active{background:var(--acc-bg);border-color:color-mix(in srgb,var(--acc) 14%,var(--line));color:var(--fg)}.step.active:after{display:none}.step:hover{color:var(--fg)}.step .n{width:30px;height:30px;border:1px solid var(--line2);border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:600;flex-shrink:0}.step.active .n{background:var(--acc);border-color:var(--acc);color:var(--accfg);box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 8%,transparent)}.step.done:not(.active) .n{color:var(--acc);border-color:color-mix(in srgb,var(--acc) 45%,var(--line));background:var(--acc-bg)}.step .n .check{display:none;font-size:14px}.step.done .n .num{display:none}.step.done .n .check{display:block}.step b{display:block;font-size:12px;font-weight:600}.step small{display:block;font-size:10px;color:var(--fg3);margin-top:1px}.step.active small{color:var(--acc)}.step-arrow{width:14px;height:14px;margin-left:auto;color:var(--acc)}.step:not(.active) .step-arrow{visibility:hidden}
+.view{display:none}.view.active{display:block;animation:enter .22s ease-out}@keyframes enter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);min-width:0}.card-pad{padding:25px}.card-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:23px}.card-head h2,.section-title{font-size:16px;letter-spacing:-.25px;font-weight:600;margin:0 0 4px}.sub{font-size:12px;color:var(--fg3);margin:0;line-height:1.75}.head-icon{width:36px;height:36px;display:grid;place-items:center;background:var(--card2);border:1px solid var(--line);border-radius:9px;color:var(--fg2);flex-shrink:0}.head-icon svg{width:19px;height:19px}.head-badge{margin-left:auto;padding:4px 8px;border:1px solid var(--line);border-radius:5px;color:var(--fg3);font-size:9px;letter-spacing:.5px;white-space:nowrap}.connect-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(270px,1fr);gap:20px}.connect-card{display:flex;flex-direction:column}.connect-card .card-head{margin-bottom:30px}.field-label,label.f{display:block;color:var(--fg2);font-size:12px;font-weight:600;margin:0 0 8px}.label-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}.label-row label{margin:0}.label-row a{font-size:11px;display:flex;align-items:center;gap:4px}.label-row a svg{width:12px;height:12px}input[type=text],input[type=password],input[type=number],input[type=url],textarea,select{width:100%;min-width:0;background:var(--field);border:1px solid var(--line2);color:var(--fg);border-radius:var(--r2);padding:11px 12px;font-size:12px;line-height:1.5}input::placeholder,textarea::placeholder{color:var(--fg3);opacity:.75}input:disabled,textarea:disabled{opacity:.5}textarea{resize:vertical;min-height:120px}.token-wrap{position:relative}.token-wrap>svg{position:absolute;left:13px;top:15px;width:17px;height:17px;color:var(--fg3)}.token-wrap input{padding:13px 75px 13px 40px;font-family:Consolas,monospace;letter-spacing:.3px}.token-wrap button{position:absolute;right:7px;top:7px;border:0;background:var(--card2);border-radius:5px;color:var(--fg2);font-size:10px;font-weight:600;padding:8px 11px;min-width:52px}.hint{font-size:11px;color:var(--fg3);line-height:1.75;margin:8px 0 0}.checkbox-line{display:flex;align-items:flex-start;gap:9px;color:var(--fg2);font-size:12px;cursor:pointer}.checkbox-line input{margin-top:4px}.checkbox-line small{display:block;color:var(--fg3);font-size:10px;font-weight:400}.remember{margin-top:22px}input[type=checkbox]{width:15px;height:15px;accent-color:var(--acc);flex-shrink:0;cursor:pointer}.connect-actions{padding-top:24px;margin-top:auto;display:flex;gap:10px;align-items:center}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 15px;min-height:39px;background:var(--acc);border:1px solid transparent;color:var(--accfg);border-radius:var(--r2);font-size:12px;font-weight:600;line-height:1.5;white-space:nowrap;transition:background .15s,transform .15s,border-color .15s}.btn svg{width:15px;height:15px}.btn:hover:not(:disabled){background:var(--acc-hover)}.btn:active:not(:disabled){transform:translateY(1px)}.btn.lg{min-height:43px;padding:11px 18px}.btn.ghost{background:var(--card);color:var(--fg2);border-color:var(--line2)}.btn.ghost:hover:not(:disabled){background:var(--card2);border-color:var(--fg3)}.btn.quiet{background:transparent;color:var(--fg3);border-color:transparent;padding-left:4px;padding-right:4px}.btn.quiet:hover:not(:disabled){color:var(--fg);background:var(--card2)}.btn.danger{background:var(--red-bg);color:var(--red);border-color:color-mix(in srgb,var(--red) 30%,var(--line))}.btn.danger:hover:not(:disabled){background:color-mix(in srgb,var(--red) 20%,var(--card))}.btn.sm{min-height:32px;padding:6px 10px;font-size:11px}.connect-actions .btn:first-child{flex:1}.status{font-size:11px;color:var(--fg2);overflow-wrap:anywhere;min-height:0}.status:not(:empty){display:block;margin-top:10px}.connect-note{display:flex;align-items:center;gap:7px;font-size:10px;color:var(--fg3);margin-top:19px;padding-top:15px;border-top:1px solid var(--line)}.connect-note svg{width:13px;height:13px;color:var(--acc)}
+.overview-card{padding:23px 25px;background:linear-gradient(145deg,color-mix(in srgb,var(--acc) 6%,var(--card)),var(--card) 75%);position:relative;overflow:hidden}.overview-card .eyebrow{color:var(--acc);font-size:9px}.overview-card h2{font-size:20px;font-weight:600;letter-spacing:-.55px;line-height:1.35;margin:9px 0 9px}.overview-card p{font-size:12px;color:var(--fg3);margin:0;max-width:320px}.security-art{width:100%;height:159px;margin:-1px 0 2px;stroke-width:1.2}.security-art .art-line{stroke:var(--line2)}.security-art .art-orbit{stroke:var(--line);stroke-dasharray:3 5}.security-art .art-fill{fill:var(--card);stroke:var(--line2)}.security-art .art-core{fill:var(--acc-bg);stroke:var(--acc)}.security-art .art-accent{stroke:var(--acc)}.overview-tags{display:flex;gap:7px;margin-top:16px;flex-wrap:wrap}.overview-tags span{padding:3px 7px;border:1px solid var(--line);border-radius:4px;font:9px/1.5 Consolas,monospace;color:var(--fg3);background:var(--card)}.trust-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:27px 5px 4px}.trust-item{display:flex;gap:12px}.trust-item>svg{color:var(--fg3);width:18px;height:18px;margin-top:2px}.trust-item h3{font-size:12px;font-weight:600;color:var(--fg2);margin:0 0 5px}.trust-item p{font-size:11px;color:var(--fg3);margin:0;max-width:260px}
+.scan-layout{display:grid;grid-template-columns:minmax(0,1.23fr) minmax(250px,1fr);gap:28px}.scan-options{border-left:1px solid var(--line);padding-left:27px}.scan-options .eyebrow{margin:0 0 15px}.opt{display:flex;align-items:flex-start;gap:10px;padding:12px 13px;border:1px solid var(--line);border-radius:var(--r2);background:var(--field);cursor:pointer;font-size:12px;min-width:0}.opt:has(input:checked){border-color:color-mix(in srgb,var(--acc) 30%,var(--line))}.opt input{margin:3px 0 0}.opt b{font-weight:550;display:block}.opt span{font-size:10px;color:var(--fg3);display:block;line-height:1.65;margin-top:3px}.opt+.opt{margin-top:9px}.scan-repos{min-height:124px;font-family:Consolas,monospace;line-height:1.8!important}.scope-opt{margin-top:13px}.field-inline{display:flex;align-items:center;gap:12px;margin-top:14px}.field-inline input{width:65px;padding:7px 9px}.field-inline label{font-size:11px;color:var(--fg2)}.field-inline small{display:block;color:var(--fg3);font-size:10px}.actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.scan-bottom{margin:24px -25px -25px;padding:19px 25px;border-top:1px solid var(--line);border-radius:0 0 var(--r) var(--r);background:color-mix(in srgb,var(--card2) 40%,var(--card));display:flex;align-items:center;gap:12px}.scan-bottom>.status{margin:0}.progress-card{padding:19px 24px;margin-top:18px}.progress-top{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg2)}.progress-top strong{font-size:12px;font-weight:550}.progress-top .badge{margin-left:auto}.live-dot{background:var(--acc)}.busy-state .live-dot{animation:pulse 1.5s infinite}@keyframes pulse{50%{box-shadow:0 0 0 4px var(--acc-bg)}}.prog{height:6px;overflow:hidden;border-radius:20px;background:var(--line);margin:14px 0 9px}.prog>i{display:block;height:100%;width:0;background:var(--acc);border-radius:20px;transition:width .3s}.prog.busy>i{background-image:linear-gradient(110deg,transparent 30%,#ffffff33 50%,transparent 70%);background-size:200% 100%;animation:sheen 2s linear infinite}@keyframes sheen{from{background-position:200% 0}to{background-position:-200% 0}}.meta{display:flex;justify-content:space-between;gap:10px;color:var(--fg3);font-size:10px;font-variant-numeric:tabular-nums}.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:0 0 19px}.tile{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:16px 16px 14px}.tile-top{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:11px}.tile .k{font-size:10px;color:var(--fg3);font-weight:550}.tile svg{width:15px;height:15px;color:var(--c,var(--blue))}.tile .v{font-size:27px;font-weight:600;letter-spacing:-1px;line-height:1.2;font-variant-numeric:tabular-nums}.tile .tile-note{font-size:9px;color:var(--fg3);margin-top:4px}.tile.alert .v{color:var(--red)}.next-row{display:flex;align-items:center;gap:10px;margin-top:19px}.next-row .hint{margin:0}.scan-info{display:flex;align-items:center;gap:6px}.scan-info svg{width:13px;height:13px;color:var(--acc)}
+.banner{display:none;align-items:center;gap:14px;padding:16px 19px;border-radius:11px;border:1px solid color-mix(in srgb,var(--amber) 50%,var(--line));background:var(--amber-bg);margin-bottom:22px}.banner.show{display:flex}.banner>svg{width:22px;height:22px;color:var(--amber)}.banner b{display:block;font-size:12px;color:var(--amber);font-weight:600}.banner p{margin:3px 0 0;font-size:11px;color:var(--fg2)}.banner .actions{margin-left:auto;flex-wrap:nowrap}.banner .btn{font-size:11px;min-height:34px}.banner .btn.ghost{background:transparent}.banner .btn:not(.ghost){background:var(--amber);color:var(--bg)}
+.review-head{padding:23px 24px 18px;display:flex;align-items:flex-start;gap:16px}.review-head .actions{margin-left:auto}.summary-line{color:var(--fg3);font-size:11px}.summary-line b{color:var(--fg2);font-weight:550}.tbar{padding:14px 24px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;background:color-mix(in srgb,var(--card2) 45%,var(--card))}.search-field{position:relative;flex:1;max-width:335px;min-width:145px}.search-field svg{position:absolute;left:10px;top:10px;width:15px;height:15px;color:var(--fg3)}.search-field input{padding:8px 11px 8px 33px;font-size:11px}.tbar .checkbox-line{font-size:10px;align-items:center;gap:6px;white-space:nowrap}.tbar input[type=checkbox]{margin:0}.tbar .btn{font-size:10px;min-height:30px;padding:5px 9px}.tw{overflow:auto;max-height:53vh;min-height:80px;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}table{width:100%;border-spacing:0;border-collapse:separate;font-size:11px;text-align:left}th{position:sticky;top:0;z-index:1;background:var(--card2);color:var(--fg3);font-size:10px;font-weight:500;padding:12px 16px;border-bottom:1px solid var(--line);white-space:nowrap}th[data-k]{cursor:pointer}th[data-k]:hover{color:var(--fg)}th.sorted{color:var(--acc)}th[data-k]:after{content:"↕";font-size:11px;margin-left:8px;color:var(--fg3)}th[aria-sort="ascending"]:after{content:"↑";color:var(--acc)}th[aria-sort="descending"]:after{content:"↓";color:var(--acc)}td{padding:12px 16px;border-bottom:1px solid var(--line);color:var(--fg2);vertical-align:middle}td a{color:var(--fg2)}td a:hover{color:var(--acc)}td.mono{font-size:10px}tbody tr:last-child td{border-bottom:0}tbody tr:hover td{background:color-mix(in srgb,var(--acc) 3%,var(--card))}tbody tr.sel td{background:color-mix(in srgb,var(--acc) 7%,var(--card))}th:first-child,td:first-child{padding-left:24px}#tbl td:first-child{width:42px;padding-right:0}#tbl td:nth-child(2){font-weight:550}td input[type=checkbox]{display:block;margin:0}.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:5px;font-size:9px;font-weight:600;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis}.badge.red{background:var(--red-bg);color:var(--red)}.badge.amber{background:var(--amber-bg);color:var(--amber)}.badge.green{background:var(--green-bg);color:var(--green)}.badge.blue{background:var(--blue-bg);color:var(--blue)}.badge.gray{background:var(--card2);color:var(--fg3);border:1px solid var(--line)}.signal-details{font-size:9px;max-width:210px;color:var(--fg3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:4px}.empty{padding:45px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--fg3);font-size:11px}.empty>svg{width:37px;height:37px;padding:9px;box-sizing:content-box;border:1px solid var(--line);background:var(--card2);border-radius:14px;color:var(--fg3);margin-bottom:9px}.empty b{display:block;font-size:14px;font-weight:550;color:var(--fg2);margin-bottom:1px}.empty p{margin:0;max-width:380px}.empty .btn{margin-top:12px}.table-footer{display:flex;align-items:center;gap:14px;border-top:1px solid var(--line);padding:14px 24px;flex-wrap:wrap;color:var(--fg3);font-size:10px}.legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center}.legend span{display:flex;align-items:center;gap:5px}.legend i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--amber)}.legend .red{background:var(--red)}.legend .blue{background:var(--blue)}.review-next{margin-top:19px;padding:17px 22px;border:1px solid var(--line);border-radius:11px;display:flex;align-items:center;gap:14px;background:var(--card)}.review-next svg{color:var(--fg3)}.review-next b{font-size:12px;font-weight:550}.review-next p{font-size:10px;color:var(--fg3);margin:2px 0 0}.review-next .btn{margin-left:auto}.selection-pill{background:var(--acc-bg);color:var(--acc);border:1px solid color-mix(in srgb,var(--acc) 20%,var(--line));border-radius:5px;padding:4px 8px;font-size:10px;white-space:nowrap}
+.fix-intro{display:flex;gap:12px;padding:16px 18px;background:var(--blue-bg);border:1px solid color-mix(in srgb,var(--blue) 25%,var(--line));border-radius:10px;margin-bottom:20px;color:var(--blue)}.fix-intro svg{margin-top:1px;width:18px;height:18px}.fix-intro b{font-size:12px;font-weight:600}.fix-intro p{font-size:11px;color:var(--fg2);margin:3px 0 0}.fix-options{display:grid;grid-template-columns:1.2fr 1.1fr .65fr;gap:12px}.fix-options>.opt{margin:0}.fix-conc{padding:10px 14px;background:var(--field);border:1px solid var(--line);border-radius:8px}.fix-conc label{font-size:11px}.fix-conc input{width:65px;float:right;padding:6px 8px;margin-top:3px}.fix-conc .hint{font-size:10px;margin-top:3px}.fix-results{margin-top:19px}.fix-results .card-head{padding:20px 24px 16px;margin:0;border-bottom:1px solid var(--line)}.fix-results .card-head h2{font-size:13px}.fix-progress{margin-top:20px}.fix-selection{font-size:11px;color:var(--fg3);margin-left:auto}.fix-selection b{color:var(--acc)}
+.grid{display:grid;gap:20px}.g2{grid-template-columns:1fr 1fr}.ioc-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:20px}.ioc-grid .card{padding:24px}.ioc-grid h2{font-size:13px;margin:0 0 3px;font-weight:600}.ioc-grid .sub{font-size:11px;margin-bottom:17px}.ioc-grid label.f{font-size:11px;margin-top:15px}.ioc-grid textarea{min-height:322px;line-height:1.9}.ioc-grid .g2{gap:12px}.ioc-grid .hint{font-size:10px}.ioc-foot{margin-top:20px;display:flex;gap:12px;align-items:center}.ioc-foot .status{margin:0}.settings-card{padding:0 24px}.settings-row{display:flex;align-items:center;gap:20px;padding:23px 0}.settings-row+.settings-row{border-top:1px solid var(--line)}.settings-row h2{font-size:13px;font-weight:600;margin:0 0 3px}.settings-row p{margin:0;font-size:11px;color:var(--fg3)}.settings-row .btn{margin-left:auto;flex-shrink:0}.storage-card{padding:20px 24px;display:flex;gap:13px;align-items:center;margin-bottom:20px}.storage-card>svg{width:23px;height:23px;color:var(--acc)}.storage-card h2{font-size:13px;font-weight:600;margin:0}.storage-card p{margin:3px 0 0;font-size:11px;color:var(--fg3)}.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.help-card{padding:24px}.help-card h2{font-size:15px;margin:0 0 12px;font-weight:600}.help-card p,.help-card li{color:var(--fg2);font-size:12px;line-height:1.85}.help-card ol{padding-left:20px;margin:0}.help-card li{padding:6px 0 6px 5px}.help-card li strong{color:var(--fg);font-weight:550}.help-card.wide{grid-column:1/-1}.help-card details{border-top:1px solid var(--line);padding:13px 0}.help-card details:last-child{padding-bottom:0}.help-card summary{cursor:pointer;color:var(--fg2);font-size:12px;font-weight:550}.help-card details p{font-size:11px;margin:8px 0 0}.footer{display:flex;gap:12px;justify-content:space-between;color:var(--fg3);font-size:9px;letter-spacing:.1px;border-top:1px solid var(--line);margin-top:33px;padding-top:16px}.footer span{display:flex;align-items:center;gap:5px}.footer svg{width:11px;height:11px}.toast{position:fixed;bottom:25px;left:calc(50% + 111px);max-width:min(560px,90vw);padding:12px 18px;border:1px solid var(--line2);border-radius:10px;background:var(--card);box-shadow:0 10px 45px #0003;font-size:12px;z-index:60;opacity:0;pointer-events:none;transform:translate(-50%,15px);transition:opacity .2s,transform .2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(min-width:1500px){main{padding-top:40px}.connect-grid{grid-template-columns:1.5fr 1fr}.connect-card{padding:32px}.overview-card{padding:26px 32px}.security-art{height:185px}.page-heading{margin-bottom:32px}.steps{margin-bottom:30px}}
+@media(max-width:1150px){.sidebar{width:195px;padding:27px 15px}.workspace{margin-left:195px}.topbar{padding:0 25px}main{padding:28px 25px}.top-tools{gap:12px}.local-tag{display:none}.step{padding:11px 10px;gap:9px}.step-arrow{display:none}.connect-grid{grid-template-columns:1.35fr 1fr;gap:15px}.card-pad,.overview-card{padding:21px}.head-badge{display:none}.scan-layout{gap:21px}.scan-options{padding-left:20px}.scan-bottom{margin:22px -21px -21px;padding:17px 21px}.tile{padding:13px 12px}.tile-top{gap:3px}.tile svg{width:12px}.tile .k{font-size:9px}.tiles{gap:8px}.toast{left:calc(50% + 98px)}.trust-grid{gap:16px}.trust-item{gap:8px}.fix-options{grid-template-columns:1fr 1fr}.fix-conc{grid-column:1/-1;display:flex;gap:14px;align-items:center}.fix-conc input{float:none;margin:0}.fix-conc .hint{margin:0}.review-head .actions{flex-wrap:wrap;justify-content:flex-end}}
+@media(max-width:900px){.sidebar{width:74px;padding:24px 11px}.brand{justify-content:center}.brand>span:last-child,.nav-label,.nav-item>span,.sidebar-bottom,.nav-item.active:after{display:none}.sidenav{margin-top:37px;gap:12px}.nav-item{justify-content:center;padding:12px}.workspace{margin-left:74px}.toast{left:calc(50% + 37px)}.breadcrumb{font-size:11px}.connect-grid{grid-template-columns:1.3fr 1fr}.card-head{gap:9px}.card-head h2{font-size:15px}.connect-actions{flex-wrap:wrap}.connect-actions .btn:first-child{flex-basis:100%}.connect-actions .btn.ghost{width:100%}.overview-card{padding:21px}.overview-card h2{font-size:20px}.security-art{height:155px}.trust-grid{gap:12px}.trust-item>svg{display:none}.scan-layout{gap:20px;grid-template-columns:1.1fr 1fr}.scan-options{padding-left:19px}.tbar{gap:10px;flex-wrap:wrap}.tbar .grow{display:none}.table-footer{gap:10px}.table-footer .grow{display:none}.legend{gap:9px}.banner{flex-wrap:wrap}.banner .actions{margin-left:36px}.fix-intro{margin-bottom:16px}}
+@media(max-width:650px){.sidebar{position:static;width:100%;height:66px;padding:0 17px;flex-direction:row;align-items:center;border-right:0;border-bottom:1px solid var(--line)}.brand{gap:8px;font-size:18px}.brand>span:last-child{display:block}.brand small{display:none}.brand-mark{width:28px;height:32px;border-radius:8px}.brand-mark svg{width:20px;height:20px}.sidenav{margin:0 0 0 auto;display:flex;gap:3px}.nav-item{padding:8px;width:35px;height:35px}.nav-item svg{width:17px;height:17px}.nav-item:first-of-type{display:none}.workspace{margin-left:0}.topbar{height:47px;padding:0 17px;gap:8px}.breadcrumb{font-size:10px}.breadcrumb>span,.breadcrumb>svg{display:none}.breadcrumb strong{font-weight:500}.top-tools{gap:12px}.pill{font-size:9px}.rate{font-size:9px;gap:0 4px}.rate b{font-size:9px}.rate-track{margin-top:2px;height:2px}.iconbtn{width:28px;height:28px;border:none;background:transparent}.iconbtn svg{width:16px;height:16px}main{padding:25px 17px 20px}.page-heading{margin-bottom:20px}.page-heading h1{font-size:26px;letter-spacing:-.8px}.page-heading p:not(.eyebrow){font-size:12px}.eyebrow{font-size:9px}.steps{padding:5px;margin-bottom:19px;border-radius:10px}.step{display:flex;flex-direction:column;gap:7px;padding:10px 4px;text-align:center}.step .n{width:25px;height:25px;font-size:10px}.step b{font-size:10px}.step small{display:none}.step:not(:last-child):after{height:25px;top:22px}.connect-grid{grid-template-columns:1fr;gap:17px}.connect-card{padding:21px}.connect-card .card-head{margin-bottom:24px}.connect-actions{flex-wrap:nowrap;padding-top:23px}.connect-actions .btn:first-child{flex-basis:auto;flex:1}.connect-actions .btn.ghost{width:auto}.overview-card{padding:21px}.security-art{float:right;width:46%;height:135px;margin:9px -13px 0 5px}.overview-card h2{font-size:18px;margin-top:13px}.overview-card .eyebrow{margin-bottom:0}.overview-card>p{font-size:11px}.overview-tags{margin-top:17px}.trust-grid{grid-template-columns:1fr;gap:17px;padding:22px 4px 0}.trust-item>svg{display:block}.trust-item{gap:13px}.trust-item p{max-width:none}.trust-item h3{margin-bottom:2px}.tiles{grid-template-columns:repeat(6,1fr);gap:9px;margin-bottom:17px}.tile{grid-column:span 2;padding:12px}.tile:nth-child(n+4){grid-column:span 3}.tile .k{font-size:9px}.tile-top{margin-bottom:7px}.tile .v{font-size:24px}.tile-note{display:none}.scan-layout{grid-template-columns:1fr;gap:22px}.scan-options{border-left:0;border-top:1px solid var(--line);padding:20px 0 0}.scan-options .eyebrow{margin-bottom:13px}.scan-options .opt span{font-size:11px}.scan-bottom{flex-wrap:wrap}.scan-bottom .status{flex-basis:100%}.scan-bottom>.grow{display:none}.scan-bottom .btn.quiet{margin-left:auto}.progress-card{padding:17px 19px}.next-row{flex-wrap:wrap;gap:13px}.next-row>.grow{display:none}.next-row>.btn{margin-left:auto}.banner{padding:15px;gap:10px}.banner>svg{width:19px}.banner p{font-size:10px}.banner .actions{margin:2px 0 0 29px}.review-head{padding:19px;flex-wrap:wrap}.review-head .actions{margin-left:0;width:100%;justify-content:flex-start}.review-head .actions .selection-pill{margin-left:auto}.tbar{padding:13px 19px}.search-field{max-width:none;flex-basis:100%}.tbar .checkbox-line{margin-right:auto}.table-footer{padding:14px 19px}.tw{max-height:58vh}table{min-width:630px}.review-next{padding:16px;flex-wrap:wrap}.review-next>svg{display:none}.review-next .btn{width:100%;margin:0}.fix-options{grid-template-columns:1fr}.fix-conc{grid-column:auto}.fix-intro{padding:14px}.fix-intro p{font-size:10px}.fix-selection{margin:8px 0 0;flex-basis:100%}.fix-results .card-head{padding:17px 19px}.ioc-toolbar{gap:7px}.ioc-toolbar .btn{font-size:10px;padding:8px 10px;min-height:34px}.ioc-toolbar .grow{display:none}.g2,.help-grid{grid-template-columns:1fr}.ioc-grid .card,.help-card{padding:20px}.ioc-grid .g2{grid-template-columns:1fr 1fr}.ioc-grid textarea{min-height:270px}.ioc-foot{flex-wrap:wrap}.settings-row{flex-wrap:wrap;gap:13px;padding:20px 0}.settings-row .btn{margin-left:0}.settings-card{padding:0 20px}.storage-card{padding:19px;align-items:flex-start}.footer{font-size:9px;gap:10px;flex-direction:column;margin-top:27px}.toast{left:50%;bottom:17px;width:max-content}.help-card.wide{grid-column:auto}.badge{max-width:200px}}
+.topbar{position:sticky;top:0;z-index:20}.opt>span>b{color:var(--fg2);font-size:12px}.step.done .n .num{display:block}.step.done .n .check{display:none}.step.done:not(.active) .n .num{display:none}.step.done:not(.active) .n .check{display:block}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.scope-group{display:grid;gap:8px;margin-top:12px}
+</style>
+</head>
+<body>
+<svg class="icons" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v6c0 4 3.3 7 7.5 9 4.2-2 7.5-5 7.5-9V6Z"/><path d="m8.5 12 2.3 2.3 4.7-4.8"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.5"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1.5"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1.5"/><rect x="14" y="14" width="6.5" height="6.5" rx="1.5"/></symbol>
+<symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 4 16 4 16 0v-13M4 12c0 4 16 4 16 0"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><path d="M9 3h6l.7 3 2.7 1 2.6 3-1.7 2.7.2 3.1-2.9 3.5-3.1-.6-2.7 1.8-4-2.2.1-3.1L4 13l1-4 2.8-1.2Z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a2.8 2.8 0 0 1 5.5.6c0 1.9-2.7 2.1-2.7 4M12 17h.01"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4M12 14v3"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6m0-6-10 10M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/></symbol>
+<symbol id="i-github" viewBox="0 0 24 24"><path d="M9 20c-5 1.5-5-2.5-7-3m14 5v-4c0-1.1-.4-1.9-1-2.4 3.4-.4 6-1.7 6-6.1 0-1.5-.5-2.6-1.5-3.6.2-1 .2-2.1-.4-3.4 0 0-1.3-.4-3.7 1.3a13 13 0 0 0-6.8 0C6.2 2.1 4.9 2.5 4.9 2.5c-.6 1.3-.6 2.4-.4 3.4C3.5 6.9 3 8 3 9.5c0 4.4 2.6 5.7 6 6.1-.6.5-1 1.4-1 2.4v4"/></symbol>
+<symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="8" r="5"/><path d="m11.5 11.5 9 9m-4-4 2-2m-5-1 2-2"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 13A9 9 0 0 1 11 3.5 9 9 0 1 0 20.5 13Z"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+<symbol id="i-history" viewBox="0 0 24 24"><path d="M3 10a9 9 0 1 1 1.5 7M3 4v6h6m3-4v6l4 2"/></symbol>
+<symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2.5"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M6 7.5v9M18 7.5c0 7-12 3-12 9"/></symbol>
+<symbol id="i-repo" viewBox="0 0 24 24"><path d="M5 19V5a2 2 0 0 1 2-2h12v18H7a2 2 0 0 1 0-4h12M9 6v6l2-1.5 2 1.5V6"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="m10.3 4-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0ZM12 9v5m0 3h.01"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Zm0 0v6h6M8 13h8m-8 4h5"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3m-5 5 5-5 5 5M4 16v5h16v-5"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="m7 4 13 8-13 8Z"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="m10 14 4-4m-5 0 4-4a4 4 0 0 1 6 6l-3 3m-1-1-4 4a4 4 0 0 1-6-6l3-3"/></symbol>
+</defs></svg>
+<a href="#main" class="skip-link">Skip to main content</a>
+<aside class="sidebar" aria-label="Workspace navigation">
+  <a class="brand" href="#connect" id="brandHome" aria-label="PolinRider home"><span class="brand-mark"><svg><use href="#i-shield"/></svg></span><span>polinrider<small>REPOSITORY SECURITY</small></span></a>
+  <p class="nav-label">WORKSPACE</p>
+  <nav class="sidenav" aria-label="Main">
+    <button class="nav-item active" id="workspaceNav" title="Security scanner"><svg aria-hidden="true"><use href="#i-grid"/></svg><span>Security scanner</span></button>
+    <p class="nav-label">MANAGE</p>
+    <button class="nav-item" data-v="ioc" title="IOC database"><svg aria-hidden="true"><use href="#i-db"/></svg><span>IOC database</span></button>
+    <button class="nav-item" data-v="settings" title="Settings"><svg aria-hidden="true"><use href="#i-settings"/></svg><span>Settings</span></button>
+    <button class="nav-item" data-v="help" title="Help & guidance"><svg aria-hidden="true"><use href="#i-help"/></svg><span>Help &amp; guidance</span></button>
+  </nav>
+  <div class="sidebar-bottom"><div class="local-card"><b><svg aria-hidden="true"><use href="#i-lock"/></svg>Local by design</b>Your token and scan data stay in this browser. Direct to GitHub.</div><div class="version"><span>POLINRIDER</span><span>Browser edition</span></div></div>
+</aside>
+<div class="workspace">
+  <header class="topbar"><div class="breadcrumb"><span>Workspace</span><svg aria-hidden="true"><use href="#i-chevron"/></svg><strong id="breadcrumb">Security scanner</strong></div><div class="grow"></div><div class="top-tools">
+    <div class="rate" id="ratePill" title="GitHub API requests remaining"><span>API remaining</span><b id="rateTxt">—</b><div class="rate-track" aria-hidden="true"><i id="rateBar"></i></div></div>
+    <span class="pill" id="tokPill"><i aria-hidden="true"></i><span id="tokTxt">Not connected</span></span>
+    <button class="iconbtn" id="themeBtn" title="Switch color theme" aria-label="Switch color theme"><svg class="moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="sun" aria-hidden="true"><use href="#i-sun"/></svg></button>
+  </div></header>
+  <main id="main" tabindex="-1">
+    <div class="page-heading"><div><p class="eyebrow" id="pageEyebrow">YOUR REPOSITORIES. YOUR CONTROL.</p><h1 id="pageTitle">Secure your repositories.</h1><p id="pageSub">Find and remove the PolinRider worm. A clear path from detection to clean code.</p></div><span class="local-tag"><svg aria-hidden="true"><use href="#i-lock"/></svg>100% in your browser</span></div>
+    <nav class="steps" aria-label="Security workflow">
+      <button class="step active" data-v="connect" aria-current="step"><span class="n"><span class="num">1</span><span class="check" aria-hidden="true">✓</span></span><span><b>Connect</b><small>Link your GitHub</small></span><svg class="step-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      <button class="step" data-v="scan"><span class="n"><span class="num">2</span><span class="check" aria-hidden="true">✓</span></span><span><b>Scan</b><small>Check repositories</small></span><svg class="step-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      <button class="step" data-v="review"><span class="n"><span class="num">3</span><span class="check" aria-hidden="true">✓</span></span><span><b>Review</b><small>Inspect findings</small></span><svg class="step-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      <button class="step" data-v="fix"><span class="n"><span class="num">4</span><span class="check" aria-hidden="true">✓</span></span><span><b>Fix</b><small>Restore clean code</small></span><svg class="step-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+    </nav>
+    <div class="banner" id="resumeBanner" role="status"><svg aria-hidden="true"><use href="#i-history"/></svg><div><b>Unfinished scan — pick up where you left off.</b><p id="resumeTxt"></p></div><div class="actions"><button class="btn ghost" id="discardBtn">Start over</button><button class="btn" id="resumeBtn"><svg aria-hidden="true"><use href="#i-play"/></svg>Resume scan</button></div></div>
+
+    <section class="view active" id="v-connect" aria-label="Connect to GitHub">
+      <div class="connect-grid">
+        <div class="card card-pad connect-card">
+          <div class="card-head"><span class="head-icon"><svg aria-hidden="true"><use href="#i-github"/></svg></span><div><h2>Connect to GitHub</h2><p class="sub">Start with a personal access token.</p></div><span class="head-badge">STEP 01</span></div>
+          <div class="label-row"><label for="token" class="field-label">Personal access token</label><a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer">Create a token<svg aria-hidden="true"><use href="#i-external"/></svg></a></div>
+          <div class="token-wrap"><svg aria-hidden="true"><use href="#i-key"/></svg><input type="password" id="token" placeholder="ghp_… or github_pat_…" autocomplete="off" spellcheck="false" aria-describedby="tokenHint"><button id="tokShow" type="button" aria-label="Show token" aria-pressed="false">Show</button></div>
+          <p class="hint" id="tokenHint">Read access to scan. Contents write access to commit fixes.<br>Using a classic token? Select the <code>repo</code> scope.</p>
+          <label class="checkbox-line remember"><input type="checkbox" id="tokSave"><span>Remember on this device<small>Saves your token in local storage. Use a private device.</small></span></label>
+          <div class="connect-actions"><button class="btn lg" id="toScan">Connect &amp; continue<svg aria-hidden="true"><use href="#i-arrow"/></svg></button><button class="btn ghost lg" id="tokTest">Test token</button></div>
+          <span class="status" id="tokStatus" role="status"></span>
+          <div class="connect-note"><svg aria-hidden="true"><use href="#i-lock"/></svg>Your token is sent only to api.github.com.</div>
+        </div>
+        <aside class="card overview-card" aria-label="About this scanner">
+          <p class="eyebrow">A SMALL TOOL. A THOROUGH CHECK.</p>
+          <svg class="security-art" viewBox="0 0 320 158" aria-hidden="true"><ellipse class="art-orbit" cx="160" cy="79" rx="116" ry="57"/><ellipse class="art-orbit" cx="160" cy="79" rx="80" ry="38"/><path class="art-line" d="m69 49 65 22m52 0 65-25m-91 57v21m-68-8 48-25m47 0 51 23"/><g class="art-fill"><rect x="45" y="31" width="38" height="32" rx="7"/><rect x="237" y="28" width="38" height="32" rx="7"/><rect x="68" y="103" width="36" height="31" rx="7"/><rect x="221" y="101" width="36" height="31" rx="7"/></g><g class="art-line"><path d="m55 42 5-4 5 4m-10 8h16m-11-12v12"/><path d="M247 39h16m-16 5h12m-12 5h9M78 113h15m-15 5h10M231 111h15m-15 5h10"/></g><rect class="art-core" x="130" y="45" width="60" height="65" rx="17"/><path class="art-accent" stroke-width="2" d="m160 59-16 6v13c0 9 7 15 16 19 9-4 16-10 16-19V65Zm-8 19 5 5 11-11"/><circle cx="160" cy="132" r="3" fill="var(--acc)" stroke="none"/><circle cx="256" cy="31" r="4" fill="var(--acc)" stroke="var(--card)" stroke-width="3"/></svg>
+          <h2>Hidden in your configs.<br>Visible in your dashboard.</h2><p>Detect injected loaders and suspicious code across your repositories and branches.</p>
+          <div class="overview-tags"><span>PolinRider</span><span>TaskJacker</span><span>auth-con-firm</span><span>Config injection</span><span>VS Code autorun</span><span>Fake fonts</span></div>
+        </aside>
+      </div>
+      <div class="trust-grid"><div class="trust-item"><svg aria-hidden="true"><use href="#i-search"/></svg><div><h3>Read first. Decide later.</h3><p>Scanning only reads files. You choose what to fix after reviewing the findings.</p></div></div><div class="trust-item"><svg aria-hidden="true"><use href="#i-branch"/></svg><div><h3>Clean code. Normal commits.</h3><p>Preview every fix with a dry run, then commit through the GitHub Contents API.</p></div></div><div class="trust-item"><svg aria-hidden="true"><use href="#i-history"/></svg><div><h3>Progress that stays with you.</h3><p>Completed repositories are saved locally. Pause and resume when you’re ready.</p></div></div></div>
+    </section>
+
+    <section class="view" id="v-scan" aria-label="Scan repositories">
+      <div class="tiles" aria-label="Scan statistics">
+        <div class="tile"><div class="tile-top"><span class="k">Repositories scanned</span><svg aria-hidden="true"><use href="#i-repo"/></svg></div><div class="v" id="tRepos">0</div><div class="tile-note">Completed this scan</div></div>
+        <div class="tile alert" style="--c:var(--red)"><div class="tile-top"><span class="k">Infected repos</span><svg aria-hidden="true"><use href="#i-alert"/></svg></div><div class="v" id="tInf">0</div><div class="tile-note">Require your review</div></div>
+        <div class="tile" style="--c:var(--amber)"><div class="tile-top"><span class="k">Injected files</span><svg aria-hidden="true"><use href="#i-file"/></svg></div><div class="v" id="tFiles">0</div><div class="tile-note">Flagged by detection rules</div></div>
+        <div class="tile" style="--c:var(--green)"><div class="tile-top"><span class="k">Clean repos</span><svg aria-hidden="true"><use href="#i-shield"/></svg></div><div class="v" id="tClean">0</div><div class="tile-note">No signals detected</div></div>
+        <div class="tile" style="--c:var(--fg3)"><div class="tile-top"><span class="k">Skipped unchanged</span><svg aria-hidden="true"><use href="#i-history"/></svg></div><div class="v" id="tCached">0</div><div class="tile-note">Reused cached results</div></div>
+      </div>
+      <div class="card card-pad">
+        <div class="card-head"><div><h2>Set your scan scope</h2><p class="sub">A focused check or your entire GitHub workspace. You choose.</p></div><span class="head-badge">READ-ONLY SCAN</span></div>
+        <div class="scan-layout"><div><div class="label-row"><label for="repos" class="field-label">Repositories</label><span class="hint" style="margin:0">One owner/repo per line</span></div><textarea id="repos" class="scan-repos" placeholder="your-org/website&#10;your-org/dashboard&#10;your-name/project" spellcheck="false" aria-describedby="repoHint"></textarea><div class="hint" id="repoHint">Include private repositories your token can access.</div><div class="scope-group" role="group" aria-label="Also include repositories from your account"><div class="hint" style="margin:0 0 2px">Also include from your account (merged with the list above):</div><label class="opt scope-opt"><input type="checkbox" id="scopeOwn"><span><b>My repositories</b><span>Repositories you own.</span></span></label><label class="opt scope-opt"><input type="checkbox" id="scopeOrg"><span><b>Organization repositories</b><span>Repos in organizations you belong to.</span></span></label><label class="opt scope-opt"><input type="checkbox" id="scopeCollab"><span><b>Collaborator repositories</b><span>Other people's repos you've been given access to.</span></span></label></div></div>
+        <div class="scan-options"><p class="eyebrow">SCAN PREFERENCES</p><label class="opt"><input type="checkbox" id="allBranches" checked><span><b>Check all branches</b><span>Recommended. The worm can hide in feature branches.</span></span></label><label class="opt"><input type="checkbox" id="skipUnchanged" checked><span><b>Skip unchanged repositories</b><span>Reuse results when no new code has been pushed.</span></span></label><div class="field-inline"><input type="number" id="conc" value="8" min="1" max="24"><label for="conc">Parallel repositories<small>1–24 at a time. Lower this to ease API usage.</small></label></div></div></div>
+        <div class="scan-bottom"><button class="btn" id="scanBtn"><svg aria-hidden="true"><use href="#i-play"/></svg><span id="scanBtnLabel">Start scan</span></button><button class="btn ghost" id="stopBtn" disabled><svg aria-hidden="true"><use href="#i-stop"/></svg>Stop</button><span class="status" id="scanStatus" role="status">Ready when you are.</span><div class="grow"></div><button class="btn quiet" id="exportBtn" title="Download JSON findings and a Markdown report"><svg aria-hidden="true"><use href="#i-download"/></svg>Export results</button></div>
+      </div>
+      <div class="card card-pad" id="localCard" hidden>
+        <div class="card-head"><div><h2>Local folders &amp; repositories</h2><p class="sub">Served by the polinrider CLI on this computer: clones and plain project folders, including git history and every local branch.</p></div><span class="head-badge">LOCAL</span></div>
+        <div class="label-row"><label for="localPaths" class="field-label">Folders to scan</label><span class="hint" style="margin:0">One path per line — repos beneath are found automatically</span></div>
+        <textarea id="localPaths" class="scan-repos" spellcheck="false" placeholder="C:\Users\you\Projects"></textarea>
+        <div class="actions" style="margin-top:8px;flex-wrap:wrap"><input type="text" id="localBrowsePath" placeholder="Browse: type a folder, then Browse" style="max-width:420px" spellcheck="false"><button class="btn ghost sm" id="localBrowse">Browse</button><select id="localDirs" style="max-width:380px" hidden aria-label="Subfolders"></select><button class="btn ghost sm" id="localAddDir" hidden>Add folder</button></div>
+        <div class="scan-options" style="margin-top:12px"><label class="opt"><input type="checkbox" id="localAllBranches" checked><span><b>All local branches</b><span>Read every branch without checking it out.</span></span></label><div class="field-inline"><input type="text" id="localMe" placeholder="e.g. Bedri" style="max-width:200px" spellcheck="false"><label for="localMe">Your author name<small>Enables the foreign-timezone commit check.</small></label></div></div>
+        <div class="actions"><button class="btn" id="localScanBtn"><svg aria-hidden="true"><use href="#i-search"/></svg>Scan local</button><span class="status" id="localStatus" role="status"></span><div class="grow"></div><span class="hint" id="localGitNote"></span></div>
+      </div>
+      <div class="card progress-card" id="progressCard"><div class="progress-top"><span class="live-dot" aria-hidden="true"></span><strong id="progressLabel">Ready to scan</strong><span class="badge gray" id="scanPercent">0%</span></div><div class="prog" id="scanProg" role="progressbar" aria-label="Repositories scanned" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div><div class="meta"><span id="scanMeta">0 / 0 repositories</span><span id="scanEta">Progress saves after every repository.</span></div></div>
+      <div class="next-row"><span class="hint scan-info"><svg aria-hidden="true"><use href="#i-lock"/></svg>Read-only. Repository code is never executed.</span><div class="grow"></div><button class="btn ghost" id="toReview">Review findings<svg aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+    </section>
+
+    <section class="view" id="v-review" aria-label="Review findings">
+      <div class="card"><div class="review-head"><div><h2 class="section-title">Findings</h2><div class="summary-line" id="reviewSummary">Your scan results will appear here.</div></div><div class="actions"><button class="btn ghost sm" id="exportJson"><svg aria-hidden="true"><use href="#i-download"/></svg>JSON</button><button class="btn ghost sm" id="exportMd"><svg aria-hidden="true"><use href="#i-file"/></svg>Report</button><span class="selection-pill" id="selCount">0 selected</span></div></div>
+      <div class="tbar"><div class="search-field"><svg aria-hidden="true"><use href="#i-search"/></svg><label for="filter" class="sr">Filter findings</label><input type="text" id="filter" placeholder="Filter repository, branch, file, or signal…"></div><label class="checkbox-line"><input type="checkbox" id="hideWarn" checked><span>Hide unverified</span></label><div class="grow"></div><button class="btn ghost" id="selAllBtn">Select all</button><button class="btn quiet" id="selNoneBtn">Clear</button></div>
+      <div class="tw" tabindex="0" role="region" aria-label="Scrollable findings table"><table id="tbl"><caption class="sr">Detected files. Sort by column, then select the files to fix.</caption><thead><tr><th scope="col"><span class="sr">Select</span></th><th scope="col" data-k="repo" tabindex="0" aria-sort="ascending">Repository</th><th scope="col" data-k="branch" tabindex="0">Branch</th><th scope="col" data-k="path" tabindex="0">File path</th><th scope="col" data-k="size" tabindex="0" style="text-align:right">Size</th><th scope="col" data-k="signal" tabindex="0">Detection signal</th></tr></thead><tbody></tbody></table><div class="empty" id="tblEmpty"><svg aria-hidden="true"><use href="#i-search"/></svg><b id="emptyTitle">Your findings start with a scan.</b><p id="emptyText">Choose your repositories and run a scan to see what needs attention.</p><button class="btn ghost sm" id="emptyScan">Go to scan<svg aria-hidden="true"><use href="#i-arrow"/></svg></button></div></div>
+      <div class="table-footer"><span id="tableCount">0 findings</span><div class="grow"></div><div class="legend"><span><i class="red"></i>Size anomaly · VS Code autorun · artifact · fake font</span><span><i></i>Marker · malicious package · lifecycle script</span><span><i class="blue"></i>Unverified</span></div></div></div>
+      <div class="review-next"><svg aria-hidden="true"><use href="#i-shield"/></svg><div><b>You’re in control of what changes.</b><p>Inspect flagged files on GitHub, then preview fixes with a dry run.</p></div><button class="btn" id="toFix" disabled>Continue to fix<svg aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+    </section>
+
+    <section class="view" id="v-fix" aria-label="Fix selected files">
+      <div class="fix-intro" id="fixModeNote"><svg aria-hidden="true"><use href="#i-shield"/></svg><div><b id="fixModeTitle">Preview first. Nothing will be written.</b><p id="fixModeText">Dry run is enabled. Check the proposed restore method and file size before committing a fix.</p></div></div>
+      <div class="card card-pad"><div class="card-head"><div><h2>Restore clean code</h2><p class="sub">Recover the last clean version from history, or strip the injected payload.</p></div><span class="fix-selection"><b id="fixSelected">0 files</b> selected</span></div><div class="fix-options"><label class="opt"><input type="checkbox" id="dry" checked><span><b>Dry run</b><span>Preview changes. No commits.</span></span></label><label class="opt"><input type="checkbox" id="skipFixed" checked><span><b>Skip already fixed</b><span>Use this browser’s fix log.</span></span></label><label class="opt local-only" hidden><input type="checkbox" id="localCommit"><span><b>Commit local fixes</b><span>One commit per repo (local mode).</span></span></label><label class="opt local-only" hidden><input type="checkbox" id="localPush"><span><b>Push after commit</b><span>Normal push, never force.</span></span></label><div class="fix-conc"><label for="fixConc">Concurrency</label><input type="number" id="fixConc" value="4" min="1" max="10"><p class="hint">1–10 files at a time</p></div></div><div class="actions" style="margin-top:21px"><button class="btn" id="fixBtn" disabled><svg aria-hidden="true"><use href="#i-play"/></svg><span id="fixBtnLabel">Preview selected fixes</span></button><button class="btn ghost" id="fixStop" disabled><svg aria-hidden="true"><use href="#i-stop"/></svg>Stop</button><div class="grow"></div><button class="btn quiet" id="fixLogClear">Clear fix log</button></div><span class="status" id="fixStatus" role="status"></span><div class="fix-progress"><div class="prog" id="fixProg" role="progressbar" aria-label="Files processed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div><div class="meta"><span id="fixMeta">0 / 0 files</span><span id="fixEta"></span></div></div></div>
+      <div class="card fix-results"><div class="card-head"><h2>Activity log</h2><span class="head-badge">FILE-BY-FILE RESULTS</span></div><div class="tw" tabindex="0" role="region" aria-label="Scrollable fix results"><table id="fixTbl"><caption class="sr">Results for each selected file</caption><thead><tr><th scope="col">Repository</th><th scope="col">Branch</th><th scope="col">File path</th><th scope="col">Restore method</th><th scope="col">Result</th></tr></thead><tbody></tbody></table><div class="empty" id="fixEmpty"><svg aria-hidden="true"><use href="#i-branch"/></svg><b>A clean commit starts with a preview.</b><p>Select files in Review, then run a dry run. Each file’s result will appear here.</p><button class="btn ghost sm" id="fixBack">Review files<svg aria-hidden="true"><use href="#i-arrow"/></svg></button></div></div></div>
+      <p class="hint scan-info" style="margin-top:17px"><svg aria-hidden="true"><use href="#i-branch"/></svg>Fixes use normal GitHub commits. No clone or force-push.</p>
+    </section>
+
+    <section class="view" id="v-ioc" aria-label="IOC database">
+      <div class="ioc-toolbar"><button class="btn ghost" id="iocExport"><svg aria-hidden="true"><use href="#i-download"/></svg>Export JSON</button><button class="btn ghost" id="iocImportBtn"><svg aria-hidden="true"><use href="#i-upload"/></svg>Import JSON</button><input type="file" id="iocImport" accept="application/json,.json" hidden aria-label="Import IOC JSON file"><button class="btn ghost" id="iocUrl"><svg aria-hidden="true"><use href="#i-link"/></svg>Load from URL</button><div class="grow"></div><button class="btn quiet" id="iocReset">Restore defaults</button></div>
+      <div class="grid g2 ioc-grid"><div class="card"><h2><label for="iocMarkers">Literal markers</label></h2><p class="sub">One per line. Matches any occurrence in a file.</p><textarea id="iocMarkers" class="mono" spellcheck="false"></textarea><p class="hint">These indicators identify known loader strings and infrastructure.</p></div><div class="card"><h2>Detection rules</h2><p class="sub">Regular expressions and payload thresholds.</p><label class="f" for="iocConfig">Config-file path regex</label><input type="text" id="iocConfig" class="mono" spellcheck="false"><label class="f" for="iocEnv">.env path regex</label><input type="text" id="iocEnv" class="mono" spellcheck="false"><label class="f" for="iocRegex">Obfuscation regex</label><input type="text" id="iocRegex" class="mono" spellcheck="false"><label class="f" for="iocVscode">VS Code file path regex <span style="font-weight:400">(TaskJacker autorun)</span></label><input type="text" id="iocVscode" class="mono" spellcheck="false"><label class="f" for="iocArtifact">Artifact path regex <span style="font-weight:400">(temp_auto_push.bat / config.bat — flagged by presence)</span></label><input type="text" id="iocArtifact" class="mono" spellcheck="false"><label class="f" for="iocLifecycle">npm lifecycle-script regex</label><input type="text" id="iocLifecycle" class="mono" spellcheck="false"><label class="f" for="iocPackages">Malicious npm packages · one per line</label><textarea id="iocPackages" class="mono" spellcheck="false" style="min-height:96px"></textarea><div class="grid g2"><div><label class="f" for="iocSize">Size threshold · bytes</label><input type="number" id="iocSize" min="1"></div><div><label class="f" for="iocLine">Long-line threshold</label><input type="number" id="iocLine" min="1"></div></div><p class="hint">Config files exceeding either threshold are flagged. Saving rules clears the unchanged-repository cache.</p></div></div>
+      <div class="ioc-foot"><button class="btn" id="iocSave"><svg aria-hidden="true"><use href="#i-check"/></svg>Save detection rules</button><span class="status" id="iocStatus" role="status"></span></div>
+    </section>
+
+    <section class="view" id="v-settings" aria-label="Settings and stored data">
+      <div class="card storage-card"><svg aria-hidden="true"><use href="#i-db"/></svg><div><h2>Browser storage</h2><p id="storageInfo">Checking local storage…</p></div></div><div class="card settings-card">
+      <div class="settings-row"><div><h2>GitHub connection</h2><p>Manage your personal access token and whether it is remembered.</p></div><button class="btn ghost" id="manageToken">Manage connection</button></div>
+      <div class="settings-row"><div><h2>Scan results</h2><p>Remove the current scan and its saved progress.</p></div><button class="btn ghost" id="clearScan">Clear scan results</button></div>
+      <div class="settings-row"><div><h2>Unchanged-repository cache</h2><p>Read every repository again on your next scan.</p></div><button class="btn ghost" id="clearCache">Clear cache</button></div>
+      <div class="settings-row"><div><h2>Reset this workspace</h2><p>Remove your token, scans, cache, fix log, rules, and theme preference.</p></div><button class="btn danger" id="clearAll">Clear all local data</button></div></div>
+    </section>
+
+    <section class="view" id="v-help" aria-label="Help and guidance"><div class="help-grid">
+      <div class="card help-card"><h2>Four steps to clean code</h2><ol><li><strong>Connect.</strong> Add a GitHub token with access to your repositories.</li><li><strong>Scan.</strong> Choose repositories and branches. Progress saves per repository.</li><li><strong>Review.</strong> Inspect signals and select the files you want to fix.</li><li><strong>Fix.</strong> Preview with a dry run, then turn it off to commit the changes.</li></ol></div>
+      <div class="card help-card"><h2>What the scanner detects</h2><p><b>Config injection</b> — PolinRider / auth-con-firm hides a remote-code loader in <code>postcss</code>, <code>next</code>, <code>vite</code>, <code>tailwind</code>, <code>eslint</code> and similar configs: a ~30 KB obfuscated blob after whitespace, or an <code>atob</code>+fetch loader paired with a committed <code>.env</code>.</p><p><b>VS Code autorun (TaskJacker)</b> — a <code>.vscode/tasks.json</code> with <code>"runOn":"folderOpen"</code> and a hidden presentation that runs <code>curl | bash</code> or <code>node</code> on a disguised file the moment the folder opens; <code>settings.json</code> may pre-enable <code>task.allowAutomaticTasks</code>.</p><p><b>Fake fonts</b> — JavaScript stored in <code>.woff2</code>/<code>.ttf</code> files under <code>public/</code> or <code>assets/</code>. <b>Artifacts</b> — the propagation script <code>temp_auto_push.bat</code> (a near-certain sign of past compromise). <b>npm vector</b> — known malicious dependencies and install-time lifecycle scripts in <code>package.json</code>. Signals are indicators for review; large legitimate configs can also be flagged.</p></div>
+      <div class="card help-card wide"><h2>A few things to know</h2><details open><summary>How are fixes made?</summary><p>The tool reads a file through the GitHub Contents API. For config files, it searches up to 30 historical commits for a clean version; otherwise it reconstructs the file by stripping suspicious long lines. For .env files, it removes the known dropper line. For package.json, it removes known malicious dependencies and install-time lifecycle scripts. Weaponized <code>.vscode/tasks.json</code>, fake font payloads and <code>temp_auto_push.bat</code> are <b>deleted</b> (there is no clean version to restore). Flagged <code>settings.json</code>/<code>launch.json</code> and root scripts are left for manual review. A live fix writes a normal commit to the selected branch. Review the restore method carefully: a historical version may omit recent legitimate changes.</p></details><details><summary>Can I stop and resume?</summary><p>Yes. Completed repositories are journaled in local storage. Stop leaves unfinished repositories pending, so Resume checks them again. Open this same file in the same browser to return to your saved scan. Keep the file at the same location; file-URL storage behavior can differ between browsers.</p></details><details><summary>Where does my data go?</summary><p>Scanning and fixing communicate directly with api.github.com. Repository code is read as text and never executed. Your token stays in memory unless you choose to remember it. The optional “Load from URL” action fetches only the IOC URL you provide, without your GitHub token.</p></details><details><summary>What access does my token need?</summary><p>Use a classic token with the repo scope, or a fine-grained token covering your target repositories with Contents read permission for scanning and read/write for fixing. Organization approval, SSO, branch protection, or repository rules may restrict access or commits.</p></details><details><summary>What if GitHub limits my requests?</summary><p>The API meter tracks the remaining request budget. The tool waits and retries rate-limited requests automatically. Lower concurrency to reduce simultaneous requests. Unverified results indicate incomplete checks and should be scanned again.</p></details></div>
+    </div></section>
+    <footer class="footer"><span><svg aria-hidden="true"><use href="#i-shield"/></svg>PolinRider · Repository security, in your hands.</span><span>No installation. No telemetry. Just your browser.</span></footer>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+
+"use strict";
+/* ---------- markers assembled so this file stays clean of the literals ---------- */
+const DROP_KEY="AUTH_API"+"_KEY", EVAL_TOK="ev"+"al", B64SIG="aHR0cHM6Ly9hdXRoLWNvbi1maXJt";
+const DEFAULT_IOC={
+  // build-config injection (whitespace-padded blob / auth-con-firm loader)
+  configRegex:"(postcss|next|vite|tailwind|eslint|astro|vue|webpack|jest|svelte|nuxt|rollup|remix|drizzle|gridsome)\\.config\\.(js|cjs|mjs|ts)$",
+  envRegex:"(^|/)\\.env($|\\.)",
+  // TaskJacker: VS Code autorun dropper (.vscode/tasks.json "runOn":"folderOpen" + hidden presentation)
+  vscodeRegex:"(^|/)\\.vscode/(tasks|settings|launch)\\.json$",
+  vscodeExecRegex:"curl\\b|wget\\b|powershell|Invoke-|\\biex\\b|\\bnode\\b|\\bbash\\b|\\bsh\\b|\\bcmd\\b|\\|\\s*(ba)?sh\\b|base64|atob\\(|\\.(woff2?|ttf|dict|svg|png|jpe?g|css)\\b|vercel\\.app|onrender\\.com|short\\.gy",
+  // high-confidence leftovers: propagation script + disguised payload files
+  artifactRegex:"(^|/)(temp_auto_push\\.bat|config\\.bat)$",
+  // non-JSON files inside .vscode (e.g. spellright.dict) are legitimate unless their CONTENT is code — judged by content, never by name
+  vscodeAuxRegex:"(^|/)\\.vscode/[^/]+\\.(dict|txt|log|dat|bin)$",
+  // fake-font vector: JavaScript hidden in .woff/.woff2/.ttf under asset folders
+  fontRegex:"(^|/)(public|static|assets|webfonts|fonts)/.*\\.(woff2?|ttf)$",
+  fontMaxBytes:524288,
+  // root scripts the campaign also injects (checked only when unusually large)
+  scriptRegex:"^(App|app|index)\\.js$",
+  // npm supply-chain vector: malicious deps + lifecycle scripts
+  packageRegex:"(^|/)package\\.json$",
+  npmPackages:["tailwindcss-style-animate","tailwind-mainanimation","tailwind-autoanimation","tailwind-animationbased","tailwindcss-typography-style","tailwindcss-style-modify","tailwindcss-animate-style","jsonwebauth"],
+  lifecycleRegex:"\\bnode\\s+-e\\b|curl\\b|wget\\b|powershell|Invoke-Expression|\\biex\\b|bash\\s+-c|\\|\\s*(ba)?sh\\b|base64\\s+(-d|--decode)|certutil|bitsadmin",
+  // obfuscator fingerprints (original rmcej%otb% variant + rotated Cot%3t=shtP variant)
+  markerRegex:"A[0-9]-[0-9]{4}|C2[0-9]{5}A|RS2[0-9]{5}|_\\$_[0-9a-f]{4,}|createRequire|global\\['|function MDy\\(|rmcej%otb%|Cot%3t=shtP|8-st[0-9]+",
+  markers:[
+    // loader strings
+    "A9-4091","A4-1928","RS260605",DROP_KEY,"auth-con-firm",B64SIG,EVAL_TOK+"(proxyInfo)","rmcej%otb%","Cot%3t=shtP","_$_1e42","LAST_COMMIT_DATE","temp_auto_push","Sec-V",
+    // XOR keys and template fingerprint
+    "2[gWfGj;<:-93Z^C","m6:tTh^D)cBz?NM]","ThZG+0jfXE6VAGOJ","e9b53a7c-2342-4b15-b02d-bd8b8f6a03f9",
+    // blockchain dead-drops (ETH / TRON / Aptos)
+    "a322e5f3d311d3080e6f0121063e9adc2490ef1a","0xE1f2395ee43e45A1556EC6438a88c31B83493103",
+    "TMfKQEd7TJJa5xNZJZ2Lep838vrzrs7mAP","TXfxHUet9pJVU1BgVkBAbrES4YUc1nGzcG","TA48dct6rFW8BXsiLAtjFaVFoSuryMjD3v",
+    "0xbe037400670fbf1c32364f762975908dc43eeb38759263e7dfcdabc76380811e","0x3f0e5781d0855fb460661ac63257376db1941b2bb522499e4757ecb3ebd5dce3","0x533b2dbcaeff19cd1f799234a27b578d713d8fcaa341b7501e4526106483e0b1",
+    "api.trongrid.io","fullnode.mainnet.aptoslabs.com","bsc-dataseed","bsc-rpc.publicnode.com","trongrid",
+    // C2 / staging hosts
+    "260120.vercel.app","default-configuration.vercel.app","vscode-settings-bootstrap.vercel.app","vscode-settings-config.vercel.app","vscode-bootstrapper.vercel.app","vscode-load-config.vercel.app","vscode-toolkit-bootstrap.vercel.app","vscodesettingstask.vercel.app","vscode-config-settings.vercel.app","vscode-extension-260120.vercel.app",
+    "regioncheck.xyz","vscodeconfig.com","vscode-load.onrender.com","jsonkeeper.com","jsonsilo.com","npoint.io","npm-cache.com",
+    // C2 IPs
+    "166.88.54.158","166.88.134.62","198.105.127.210","23.27.202.27","154.91.0.103","136.0.9.8","188.43.33.249",
+    // Telegram exfil bot token prefix
+    "7870147428:AAG"],
+  sizeThreshold:8000,lineThreshold:400
+};
+/* ---------- storage ---------- */
+const LS={get:(k,d)=>{try{const v=localStorage.getItem("pr2_"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+          set:(k,v)=>{try{localStorage.setItem("pr2_"+k,JSON.stringify(v))}catch(e){toast("Storage full — export & clear results")}},
+          del:k=>{try{localStorage.removeItem("pr2_"+k)}catch(e){toast("Browser storage is unavailable.")}}};
+let IOC=Object.assign({},DEFAULT_IOC,LS.get("ioc",{}));
+let TOKEN=LS.get("token","")||"";
+let SCAN=LS.get("scan",null);          // {allBranches, targets[], done{repo:{findings[],pushed_at,cached}}, status, startedAt}
+let CACHE=LS.get("cache",{});         // repo -> {pushed_at, findings[]}
+let FIXLOG=LS.get("fixlog",[]);       // [{repo,branch,path,method,result,at}]
+let SEL=new Set(); let STOP=false;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const b64d=s=>{try{return decodeURIComponent(escape(atob((s||"").replace(/\n/g,""))))}catch(e){return atob((s||"").replace(/\n/g,""))}};
+const b64e=s=>btoa(unescape(encodeURIComponent(s)));
+function el(tag,attrs,...kids){const n=document.createElement(tag);if(attrs)for(const k in attrs){if(k==="class")n.className=attrs[k];else if(k==="text")n.textContent=attrs[k];else if(k==="style")n.style.cssText=attrs[k];else n.setAttribute(k,attrs[k]);}for(const c of kids){if(c==null)continue;n.append(c.nodeType?c:document.createTextNode(String(c)))}return n}
+let toastT; function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2600)}
+const fmtB=n=>n>=1048576?(n/1048576).toFixed(1)+" MB":n>=1024?(n/1024).toFixed(1)+" KB":n+" B";
+const fmtT=s=>s<60?Math.round(s)+"s":Math.floor(s/60)+"m "+Math.round(s%60)+"s";
+
+/* ---------- GitHub API with rate-limit + backoff ---------- */
+let RATE={rem:null,reset:null,limit:5000};
+async function gh(path,opt={},retry=2){
+  const r=await fetch("https://api.github.com/"+path.replace(/^\//,""),{method:opt.method||"GET",
+    headers:{"Authorization":"Bearer "+TOKEN,"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28",...(opt.body?{"Content-Type":"application/json"}:{})},
+    body:opt.body?JSON.stringify(opt.body):undefined,redirect:"error",credentials:"omit",referrerPolicy:"no-referrer"});
+  const rem=r.headers.get("x-ratelimit-remaining"); if(rem!=null){RATE.rem=+rem;RATE.limit=+(r.headers.get("x-ratelimit-limit")||5000);RATE.reset=+r.headers.get("x-ratelimit-reset");paintRate();}
+  if((r.status===403||r.status===429)&&retry>0){
+    const ra=Number(r.headers.get("retry-after"))||0;
+    const wait=ra?ra*1000:(RATE.rem===0&&RATE.reset?Math.max(1000,RATE.reset*1000-Date.now()):3000*(3-retry));
+    toast("GitHub rate limit. Retrying in "+fmtT(wait/1000)+".");
+    const end=Date.now()+wait;
+    while(Date.now()<end){if(STOP&&BUSY)throw new Error("Stopped during rate-limit wait");await new Promise(x=>setTimeout(x,Math.min(500,end-Date.now())))}
+    if(STOP&&BUSY)throw new Error("Stopped during rate-limit wait");
+    return gh(path,opt,retry-1);
+  }
+  if(!r.ok){const t=await r.text();const e=new Error("HTTP "+r.status+": "+t.slice(0,120));e.status=r.status;throw e}
+  return r.status===204?null:r.json();
+}
+async function ghAll(path,params){const q=new URLSearchParams(params||{});q.set("per_page","100");let p=1,out=[];for(;;){q.set("page",p);const d=await gh(path+"?"+q);if(!Array.isArray(d)||!d.length)break;out.push(...d);if(d.length<100)break;p++}return out}
+function paintRate(){
+  if(RATE.rem==null)return;
+  const color=RATE.rem<200?"var(--red)":RATE.rem<800?"var(--amber)":"var(--acc)";
+  $("#rateTxt").textContent=RATE.rem.toLocaleString();$("#rateTxt").style.color=color;
+  $("#rateBar").style.width=Math.max(0,Math.min(100,RATE.rem/Math.max(RATE.limit,1)*100))+"%";$("#rateBar").style.background=color;
+  $("#ratePill").title=RATE.rem+" of "+RATE.limit+" GitHub API requests remaining"+(RATE.reset?". Resets at "+new Date(RATE.reset*1000).toLocaleTimeString():"");
+}
+async function pool(items,n,fn,onEach){
+  let next=0,done=0;
+  async function worker(){while(!STOP&&next<items.length){const item=items[next++];let result;try{result=await fn(item)}catch(e){result={error:String(e)}}done++;if(onEach)onEach(result,done,items.length)}}
+  await Promise.all(Array.from({length:Math.min(Math.max(1,n),items.length)},worker));
+}
+
+/* ---------- detection ---------- */
+function rx(re,s,flags="i"){try{return new RegExp(re,flags).test(s)}catch(e){return false}}
+const isCfg=(p,db=IOC)=>rx(db.configRegex,p), isEnv=(p,db=IOC)=>rx(db.envRegex,p), isVscode=(p,db=IOC)=>rx(db.vscodeRegex,p),
+      isArtifact=(p,db=IOC)=>rx(db.artifactRegex,p), isFont=(p,db=IOC)=>rx(db.fontRegex,p), isScript=(p,db=IOC)=>rx(db.scriptRegex,p), isPkg=(p,db=IOC)=>rx(db.packageRegex,p),
+      isVscodeAux=(p,db=IOC)=>rx(db.vscodeAuxRegex,p);
+const longest=c=>c.split("\n").reduce((a,l)=>Math.max(a,l.length),0);
+// non-JSON files under .vscode: a real dictionary/log is plain words; a disguised payload is code, hex, or a payload-length line
+function disguisedSignal(content,db=IOC){
+  const code=/\brequire\s*\(|\bfunction\b|=>|\bprocess\.|child_process|Buffer\.from|\bglobal\[|https?:\/\//.test(content)||/[0-9a-f]{200,}/i.test(content.replace(/\s/g,""));
+  const ln=longest(content), m=signal(content,content.length,false,db).replace(/^MARKER:\s*/,"");
+  if(!(code||m||ln>db.lineThreshold))return"";
+  return"ARTIFACT: disguised payload in .vscode"+(m?", "+m:"")+(ln>db.lineThreshold?", LONGLINE("+ln+")":"");
+}
+// .vscode/*.json — TaskJacker autorun dropper
+function vscodeSignal(path,content,db=IOC){
+  const base=path.split("/").pop().toLowerCase(),h=[];
+  const folderOpen=/"runOn"\s*:\s*"folderOpen"/i.test(content);
+  const hidden=/"hide"\s*:\s*true|"reveal"\s*:\s*"(never|silent)"|"echo"\s*:\s*false|"close"\s*:\s*true/i.test(content);
+  const exec=rx(db.vscodeExecRegex,content), padded=/\S[ \t]{80,}\S/.test(content), m=signal(content,content.length,false,db).replace(/^MARKER:\s*/,"");
+  if(base==="tasks.json"){
+    if(folderOpen){h.push("runOn folderOpen");if(exec)h.push("shell/node exec");if(hidden)h.push("hidden task");if(padded)h.push("whitespace-padded");if(m)h.push(m);return"VSCODE-AUTORUN: "+h.join(", ")}
+    if(m)h.push(m);if(exec&&hidden)h.push("hidden shell task");
+    return h.length?"VSCODE-AUTORUN: "+h.join(", "):"";
+  }
+  if(base==="settings.json"){
+    if(/"task\.allowAutomaticTasks"\s*:\s*"?(on|true)"?/i.test(content))h.push("task.allowAutomaticTasks preset");
+    if(/"security\.workspace\.trust\.enabled"\s*:\s*false/i.test(content))h.push("workspace trust disabled");
+    if(m)h.push(m);return h.length?"VSCODE-SETTINGS: "+h.join(", "):"";
+  }
+  if(/"preLaunchTask"/i.test(content)&&exec)h.push("preLaunchTask + exec");
+  if(/"(runtimeExecutable|program)"\s*:\s*"[^"]*\.(woff2?|ttf|dict|svg|png|jpe?g|css)"/i.test(content))h.push("runs disguised file");
+  if(m)h.push(m);return h.length?"VSCODE-LAUNCH: "+h.join(", "):"";
+}
+// fonts under asset folders — real fonts start with a binary magic; the campaign hides hex/JS text in them
+function fontSignal(bin,db=IOC){
+  const head=bin.slice(0,4);
+  if(head==="wOF2"||head==="wOFF"||head==="OTTO"||head==="true"||head==="ttcf"||head==="\u0000\u0001\u0000\u0000")return"";
+  const sample=bin.slice(0,4000);let printable=0;for(const ch of sample){const c=ch.charCodeAt(0);if((c>=32&&c<127)||c===9||c===10||c===13)printable++}
+  if(!sample.length||printable/sample.length<0.9)return"";
+  const js=/\b(function|require|const|var|let|return|process)\b|=>|\.(call|apply)\(/.test(bin)||/[0-9a-f]{200,}/i.test(bin.replace(/\s/g,""));
+  const m=signal(bin,bin.length,false,db).replace(/^MARKER:\s*/,"");
+  return(js||m)?"FAKE-FONT: text/JavaScript inside font file"+(m?", "+m:""):"";
+}
+// package.json — malicious deps and lifecycle scripts that run on install
+function pkgSignal(content,db=IOC){
+  const h=[];let j=null;try{j=JSON.parse(content)}catch(e){}
+  if(j){for(const k of["dependencies","devDependencies","optionalDependencies","peerDependencies"]){const d=j[k]||{};for(const n of db.npmPackages)if(d[n]!==undefined)h.push("pkg "+n)}
+    const s=j.scripts||{};for(const k of["preinstall","install","postinstall","prepare","prepublish"])if(typeof s[k]==="string"&&rx(db.lifecycleRegex,s[k]))h.push("script "+k)}
+  const m=signal(content,content.length,false,db).replace(/^MARKER:\s*/,"");if(m)h.push(m);
+  if(!h.length)return"";
+  return(h.some(x=>x.startsWith("pkg "))?"NPM-PACKAGE: ":h.some(x=>x.startsWith("script "))?"LIFECYCLE-SCRIPT: ":"MARKER: ")+h.join(", ");
+}
+function signal(content,size,cfg,db=IOC){
+  if(cfg&&size>db.sizeThreshold)return"SIZE-ANOMALY("+fmtB(size)+")";
+  const h=new Set();try{(content.match(new RegExp(db.markerRegex,"g"))||[]).forEach(m=>h.add(m))}catch(e){}
+  for(const m of db.markers)if(m&&content.includes(m))h.add(m);
+  const longest=content.split("\n").reduce((a,l)=>Math.max(a,l.length),0);if(cfg&&longest>db.lineThreshold)h.add("LONGLINE("+longest+")");
+  return h.size?"MARKER:"+[...h].slice(0,4).join(", "):"";
+}
+async function scanRepo(full,allBranches,skipUnchanged,db=IOC){
+  const pending=()=>({repo:full,interrupted:true,findings:[]});
+  const warning=(branch,path,message)=>({repo:full,branch,path,size:0,signal:"WARN: "+message});
+  if(STOP)return pending();
+  let info;try{info=await gh("repos/"+full)}catch(e){return STOP?pending():{repo:full,findings:[warning("?","(error)",e.status||e.message)]}}
+  if(STOP)return pending();
+  const pushed=info.pushed_at,iocKey=JSON.stringify(db),cached=CACHE[full];
+  if(skipUnchanged&&cached&&cached.pushed_at===pushed&&cached.allBranches===allBranches&&cached.iocKey===iocKey&&!cached.findings.some(f=>f.signal.startsWith("WARN")))return{repo:full,findings:cached.findings,pushed_at:pushed,cached:true};
+  const out=[],seen=new Map();let refs;
+  if(allBranches){try{const bs=await ghAll("repos/"+full+"/branches");refs=bs.map(b=>[b.name,b.commit.sha])}catch(e){out.push(warning("?","(branches)","Could not list all branches"));refs=[[info.default_branch,info.default_branch]]}}
+  else refs=[[info.default_branch,info.default_branch]];
+  for(const[br,sha]of refs){
+    if(STOP)return pending();let tree;
+    try{tree=await gh("repos/"+full+"/git/trees/"+encodeURIComponent(sha)+"?recursive=1")}catch(e){if(STOP)return pending();out.push(warning(br,"(unverified)","Tree request failed: "+(e.status||e.message)));continue}
+    if(tree&&tree.truncated)out.push(warning(br,"(truncated tree)","GitHub returned a partial file tree; some files were not checked"));
+    for(const nd of(tree&&tree.tree)||[]){
+      if(STOP)return pending();
+      if(nd.type!=="blob")continue;const p=nd.path,cfg=isCfg(p,db),env=isEnv(p,db),vsc=isVscode(p,db),aux=isVscodeAux(p,db),art=isArtifact(p,db),font=isFont(p,db),scr=isScript(p,db),pkg=isPkg(p,db);
+      if(!(cfg||env||vsc||aux||art||font||scr||pkg))continue;
+      const size=nd.size||0;let sig="";
+      if(art)sig="ARTIFACT: propagation script (temp_auto_push)";
+      else if(cfg&&size>db.sizeThreshold)sig="SIZE-ANOMALY("+fmtB(size)+")";
+      else if(font&&size>db.fontMaxBytes)sig="";                 // real large fonts: skip download
+      else if(scr&&size<=db.sizeThreshold)sig="";                // root App.js/index.js only inspected when unusually large
+      else{
+        let blob=seen.get(nd.sha);
+        if(!blob){try{const b=await gh("repos/"+full+"/git/blobs/"+nd.sha);const raw=b.content?atob(b.content.replace(/\n/g,"")):"";blob={raw,content:font?raw:b64d(b.content||"")}}catch(e){blob={error:"Unable to read file: "+(e.status||e.message)}}seen.set(nd.sha,blob)}
+        if(blob.error)sig="WARN: "+blob.error;
+        else if(font)sig=fontSignal(blob.raw,db);
+        else if(aux)sig=disguisedSignal(blob.content,db);
+        else if(vsc)sig=vscodeSignal(p,blob.content,db);
+        else if(pkg)sig=pkgSignal(blob.content,db);
+        else if(scr){const ln=longest(blob.content),m=signal(blob.content,size,false,db);sig=ln>db.lineThreshold?(m?m+", ":"MARKER: ")+"LONGLINE("+ln+")":m}
+        else sig=signal(blob.content,size,cfg,db);
+      }
+      if(sig)out.push({repo:full,branch:br,path:p,size,signal:sig});
+    }
+  }
+  if(STOP)return pending();
+  if(!out.some(f=>f.signal.startsWith("WARN")))CACHE[full]={pushed_at:pushed,allBranches,findings:out,iocKey};
+  return{repo:full,findings:out,pushed_at:pushed};
+}
+
+/* ---------- fix ---------- */
+// Rebuild a clean config when no clean historical version exists. Handles both variants:
+//  - whitespace-padded blob: drop 80+-space runs / payload-length lines / injected createRequire prelude
+//  - auth-con-firm loader: remove the whole statement block (IIFE) that contains an IOC marker,
+//    then drop the imports that only served it (dotenv/config, node-fetch)
+function reconstruct(c){
+  let lines=c.split("\n").map(l=>l.replace(/\s{80,}.*$/,"")).filter(l=>l.length<=IOC.lineThreshold);
+  const hasMarker=l=>IOC.markers.some(m=>m&&l.includes(m))||rx(IOC.markerRegex,l,"");
+  const START=/^\s*\(\s*(async\s*)?(function\b|\(\s*\)\s*=>)/, END=/^\s*\}\s*\)\s*\(\s*\)\s*;?\s*$/;
+  for(let i=0;i<lines.length;i++){
+    if(!hasMarker(lines[i]))continue;
+    let s=i,e=i;
+    while(s>0&&i-s<60&&!START.test(lines[s]))s--;
+    while(e<lines.length-1&&e-i<60&&!END.test(lines[e]))e++;
+    if(START.test(lines[s])&&END.test(lines[e])){lines.splice(s,e-s+1);i=s-1}   // cut the enclosing IIFE
+    else{lines.splice(i,1);i--}                                                    // fallback: cut the marker line
+  }
+  const joined=lines.join("\n"), fetchRefs=(joined.match(/node-fetch/g)||[]).length;
+  lines=lines.filter(l=>!/^\s*import\s+['"]dotenv\/config['"];?\s*$/.test(l)&&!(fetchRefs===1&&/node-fetch/.test(l)));
+  const rest=lines.filter(l=>!/import[ {].*createRequire.*from .module./.test(l)&&!/const +require *= *createRequire/.test(l)).join("\n");
+  const out=(lines.some(l=>/createRequire/.test(l))&&!/require\s*\(/.test(rest))?rest:lines.join("\n");
+  return out.replace(/\n{3,}/g,"\n\n");
+}
+const DEL_MSG="security: remove PolinRider/TaskJacker artifact";
+// Decide how to clean one file. Returns {content,method} to rewrite, {action:"delete"} or {action:"review"}.
+async function cleanFor(full,branch,path,cur,sig=""){
+  if(isArtifact(path)||/^(FAKE-FONT|ARTIFACT)/.test(sig))return{action:"delete",method:"delete file"};
+  if(isVscode(path)){const base=path.split("/").pop().toLowerCase();return(base==="tasks.json"&&/^VSCODE-AUTORUN/.test(sig))?{action:"delete",method:"delete tasks.json"}:{action:"review",method:"manual review"}}
+  if(isPkg(path)){
+    try{const j=JSON.parse(cur);let changed=false;
+      for(const k of["dependencies","devDependencies","optionalDependencies","peerDependencies"]){if(!j[k])continue;for(const n of IOC.npmPackages)if(j[k][n]!==undefined){delete j[k][n];changed=true}}
+      if(j.scripts)for(const k of["preinstall","install","postinstall","prepare","prepublish"])if(typeof j.scripts[k]==="string"&&rx(IOC.lifecycleRegex,j.scripts[k])){delete j.scripts[k];changed=true}
+      if(!changed)return{action:"review",method:"manual review"};
+      const indent=(cur.match(/^[ \t]+/m)||["  "])[0];return{content:JSON.stringify(j,null,indent)+(cur.endsWith("\n")?"\n":""),method:"strip package.json"}
+    }catch(e){return{action:"review",method:"manual review"}}
+  }
+  if(isEnv(path))return{content:cur.split("\n").filter(l=>!l.includes(DROP_KEY)).join("\n"),method:"strip dropper"};
+  if(isScript(path)&&!isCfg(path))return{action:"review",method:"manual review"};
+  try{const cs=await gh("repos/"+full+"/commits?path="+encodeURIComponent(path)+"&sha="+encodeURIComponent(branch)+"&per_page=30");
+    for(const c of cs){if(STOP)break;try{const f=await gh("repos/"+full+"/contents/"+encodeURIComponent(path)+"?ref="+c.sha);const t=f.content?b64d(f.content):"";const sz=f.size||t.length;if(sz<=IOC.sizeThreshold&&!signal(t,sz,true))return{content:t,method:"restore "+c.sha.slice(0,7)}}catch(e){}}}catch(e){}
+  return{content:reconstruct(cur),method:"reconstruct"};
+}
+async function fixOne(row,dry){
+  const{repo,branch,path}=row;const f=await gh("repos/"+repo+"/contents/"+encodeURIComponent(path)+"?ref="+encodeURIComponent(branch));
+  if(typeof f.content!=="string"||(f.size>0&&!f.content))throw new Error("GitHub did not return readable file content");
+  const cur=f.content?b64d(f.content):"";const plan=await cleanFor(repo,branch,path,cur,row.signal||"");
+  if(STOP)return{...row,method:plan.method,result:"Stopped before commit"};
+  if(plan.action==="review")return{...row,method:plan.method,result:"Review on GitHub — not auto-fixed"};
+  if(plan.action==="delete"){
+    if(dry)return{...row,method:plan.method,result:"DRY delete "+fmtB(f.size||0)};
+    await gh("repos/"+repo+"/contents/"+encodeURIComponent(path),{method:"DELETE",body:{message:DEL_MSG,sha:f.sha,branch}});
+    return{...row,method:plan.method,result:"✓ deleted"};
+  }
+  const{content,method}=plan;
+  // Hard gate: never call a file clean, and never commit a "cleaned" copy, while the detectors still fire on it.
+  const stillBad=!!signal(content,new TextEncoder().encode(content).length,isCfg(path));
+  if(content===cur)return stillBad?{...row,method:"manual review",result:"Could not auto-clean — review on GitHub"}:{...row,method,result:"already clean"};
+  if(stillBad)return{...row,method,result:"Cleaned copy still matches IOCs — review on GitHub (not committed)"};
+  const EXPORT=/export\s+default|module\.exports/;
+  if(EXPORT.test(cur)&&!EXPORT.test(content))return{...row,method:"manual review",result:"Cleaning would remove the config's export — review on GitHub (not committed)"};
+  if(dry)return{...row,method,result:"DRY "+fmtB(f.size||cur.length)+" → "+fmtB(new TextEncoder().encode(content).length)};
+  await gh("repos/"+repo+"/contents/"+encodeURIComponent(path),{method:"PUT",body:{message:"security: remove injected RCE payload (PolinRider/auth-con-firm worm)",content:b64e(content),sha:f.sha,branch}});
+  return{...row,method,result:"✓ committed "+fmtB(new TextEncoder().encode(content).length)};
+}
+
+/* ---------- workspace state and navigation ---------- */
+let BUSY="",RUNNING=false,CONNECTING=false,VERIFIED="",LAST_WORKFLOW="connect",T0=0,BASE_DONE=0;
+const TITLES={
+  connect:["YOUR REPOSITORIES. YOUR CONTROL.","Secure your repositories.","Find and remove the PolinRider worm. A clear path from detection to clean code."],
+  scan:["STEP 02 / DETECT","Leave no branch unchecked.","Scan your repositories for injected loaders. Your progress is saved as you go."],
+  review:["STEP 03 / INSPECT","A closer look at your code.","Review detection signals, inspect files on GitHub, and choose what to fix."],
+  fix:["STEP 04 / RESTORE","Bring your code back to clean.","Preview the changes, then restore selected files through normal GitHub commits."],
+  ioc:["DETECTION INTELLIGENCE","Know what you’re looking for.","Manage the indicators of compromise and rules that power your scans."],
+  settings:["YOUR WORKSPACE","Keep your workspace in order.","Manage your connection and the data stored in this browser."],
+  help:["HELP & GUIDANCE","A little clarity goes a long way.","How detection, saved progress, and repository fixes work."]
+};
+function show(v,focus=true){
+  if(!TITLES[v])return;
+  const workflow=["connect","scan","review","fix"].includes(v);
+  if(workflow)LAST_WORKFLOW=v;
+  $$(".step").forEach(s=>{const active=s.dataset.v===v;s.classList.toggle("active",active);if(active)s.setAttribute("aria-current","step");else s.removeAttribute("aria-current")});
+  $$(".nav-item").forEach(s=>{const active=s.id==="workspaceNav"?workflow:s.dataset.v===v;s.classList.toggle("active",active);if(active)s.setAttribute("aria-current","page");else s.removeAttribute("aria-current")});
+  $$(".view").forEach(s=>s.classList.toggle("active",s.id==="v-"+v));
+  $("#pageEyebrow").textContent=TITLES[v][0];$("#pageTitle").textContent=TITLES[v][1];$("#pageSub").textContent=TITLES[v][2];
+  $("#breadcrumb").textContent=workflow?"Security scanner":v==="ioc"?"IOC database":v==="settings"?"Settings":"Help & guidance";
+  if(v==="review")renderTable();if(v==="settings")paintStorage();if(v==="fix")paintFixMode();
+  if(focus){$("#main").focus({preventScroll:true});window.scrollTo({top:0,behavior:"instant"})}
+}
+$$("[data-v]").forEach(s=>s.onclick=()=>show(s.dataset.v));
+$("#workspaceNav").onclick=()=>show(LAST_WORKFLOW);
+$("#brandHome").onclick=e=>{e.preventDefault();show("connect")};
+$("#manageToken").onclick=()=>show("connect");
+$("#emptyScan").onclick=()=>show("scan");$("#fixBack").onclick=()=>show("review");
+function paintTheme(){const dark=document.documentElement.dataset.theme==="dark";$("#themeBtn").setAttribute("aria-label","Switch to "+(dark?"light":"dark")+" theme");$("#themeBtn").title="Switch to "+(dark?"light":"dark")+" theme"}
+$("#themeBtn").onclick=()=>{const h=document.documentElement;h.dataset.theme=h.dataset.theme==="dark"?"light":"dark";LS.set("theme",h.dataset.theme);paintTheme()};
+matchMedia("(prefers-color-scheme: light)").addEventListener("change",e=>{if(!LS.get("theme",null)){document.documentElement.dataset.theme=e.matches?"light":"dark";paintTheme()}});
+function markDone(step,ok){const s=$$(".step").find(x=>x.dataset.v===step);if(s)s.classList.toggle("done",!!ok)}
+function setBusy(mode){
+  BUSY=mode;RUNNING=mode==="scan";
+  const ids=["token","tokSave","tokShow","tokTest","toScan","repos","scopeOwn","scopeOrg","scopeCollab","allBranches","skipUnchanged","conc","scanBtn","dry","skipFixed","fixConc","fixLogClear","iocSave","iocReset","iocImportBtn","iocImport","iocUrl","iocMarkers","iocConfig","iocEnv","iocRegex","iocVscode","iocArtifact","iocLifecycle","iocPackages","iocSize","iocLine","clearScan","clearCache","clearAll","discardBtn","resumeBtn","selAllBtn","selNoneBtn"];
+  for(const id of ids)$("#"+id).disabled=!!mode;
+  $("#stopBtn").disabled=mode!=="scan";$("#fixStop").disabled=mode!=="fix";
+  $("#scanProg").classList.toggle("busy",mode==="scan");$("#progressCard").classList.toggle("busy-state",mode==="scan");$("#fixProg").classList.toggle("busy",mode==="fix");
+  $$("#tbl tbody input").forEach(cb=>cb.disabled=!!mode||cb.dataset.unverified==="true");
+  if(!mode)$("#repos").disabled=false;
+  paintSel();paintBanner();
+}
+const bounded=(id,fallback,max)=>{const n=Math.min(max,Math.max(1,Math.floor(Number($("#"+id).value)||fallback)));$("#"+id).value=n;return n};
+function progress(id,pct){$("#"+id+">i").style.width=pct+"%";$("#"+id).setAttribute("aria-valuenow",String(Math.round(pct)))}
+
+/* ---------- connect ---------- */
+function paintTok(){const ok=!!TOKEN&&!!VERIFIED;$("#tokPill").classList.toggle("ok",ok);$("#tokTxt").textContent=ok?VERIFIED:TOKEN?"Token added":"Not connected";$("#tokPill").title=ok?"Connected as "+VERIFIED:TOKEN?"Token has not been verified":"Connect a GitHub token";markDone("connect",ok)}
+$("#token").value=TOKEN;$("#tokSave").checked=!!LS.get("token","");
+$("#tokShow").onclick=()=>{const t=$("#token"),showToken=t.type==="password";t.type=showToken?"text":"password";$("#tokShow").textContent=showToken?"Hide":"Show";$("#tokShow").setAttribute("aria-pressed",String(showToken));$("#tokShow").setAttribute("aria-label",showToken?"Hide token":"Show token")};
+$("#token").oninput=()=>{TOKEN=$("#token").value.trim();VERIFIED="";$("#tokStatus").textContent="";if($("#tokSave").checked)LS.set("token",TOKEN);paintTok()};
+$("#tokSave").onchange=()=>$("#tokSave").checked?LS.set("token",TOKEN):LS.del("token");
+async function testToken(){
+  if(!TOKEN){$("#tokStatus").textContent="Add a personal access token to continue.";$("#token").focus();return false}
+  if(CONNECTING||BUSY)return false;
+  CONNECTING=true;$("#tokStatus").textContent="Connecting to GitHub…";["tokTest","toScan","token"].forEach(id=>$("#"+id).disabled=true);
+  try{const u=await gh("user");VERIFIED=u.login;$("#tokStatus").textContent="Connected as "+u.login+". You’re ready to scan.";paintTok();return true}
+  catch(e){VERIFIED="";$("#tokStatus").textContent="Could not connect. "+e.message;paintTok();return false}
+  finally{CONNECTING=false;["tokTest","toScan","token"].forEach(id=>$("#"+id).disabled=!!BUSY)}
+}
+$("#tokTest").onclick=()=>testToken();
+$("#toScan").onclick=async()=>{if(VERIFIED||await testToken())show("scan")};
+$("#token").onkeydown=e=>{if(e.key==="Enter")$("#toScan").click()};
+
+/* ---------- scan and saved progress ---------- */
+function allFindings(){return SCAN?Object.values(SCAN.done).flatMap(d=>d.findings||[]):[]}
+const real=f=>!f.info&&!f.signal.startsWith("WARN")&&!f.path.startsWith("(");
+function paintTiles(){
+  const entries=SCAN?Object.values(SCAN.done):[],fs=allFindings().filter(real),inf=new Set(fs.map(f=>f.repo));
+  $("#tRepos").textContent=entries.length;$("#tInf").textContent=inf.size;$("#tFiles").textContent=fs.length;
+  $("#tClean").textContent=entries.filter(d=>!(d.findings||[]).length).length;$("#tCached").textContent=entries.filter(d=>d.cached).length;
+  markDone("scan",SCAN&&SCAN.status==="done");$("#toReview").disabled=!entries.length;$("#exportBtn").disabled=!entries.length;$("#exportJson").disabled=!entries.length;$("#exportMd").disabled=!entries.length;
+  const complete=SCAN&&SCAN.status==="done";$("#toReview").classList.toggle("ghost",!complete);$("#scanBtn").classList.toggle("ghost",!!SCAN&&!RUNNING);$("#scanBtnLabel").textContent=complete?"Scan again":SCAN&&!RUNNING?"Start new scan":"Start scan";
+}
+function paintProg(){
+  const done=SCAN?Object.keys(SCAN.done).length:0,total=SCAN?SCAN.targets.length:0,pct=total?done/total*100:0;
+  progress("scanProg",pct);$("#scanPercent").textContent=Math.round(pct)+"%";$("#scanMeta").textContent=done+" / "+total+" repositories";
+  $("#progressLabel").textContent=RUNNING?"Scanning repositories":SCAN?(done===total?"Scan complete":"Scan paused"):"Ready to scan";
+  $("#scanEta").textContent=!SCAN?"Progress saves after every repository.":"";
+  if(RUNNING&&T0){const finished=done-BASE_DONE,elapsed=(Date.now()-T0)/1000;$("#scanEta").textContent=finished?"About "+fmtT((total-done)*elapsed/finished)+" remaining":"Estimating time remaining…"}
+}
+function paintBanner(){
+  const unfinished=SCAN&&SCAN.status!=="done"&&Object.keys(SCAN.done).length<SCAN.targets.length&&!BUSY;
+  $("#resumeBanner").classList.toggle("show",!!unfinished);
+  if(unfinished)$("#resumeTxt").textContent=Object.keys(SCAN.done).length+" of "+SCAN.targets.length+" repositories saved. "+(TOKEN?"Your completed work is safe.":"Reconnect your GitHub token to continue.");
+}
+async function runScan(){
+  if(BUSY||CONNECTING||!SCAN)return;
+  if(!TOKEN){toast("Connect your token to resume this scan.");show("connect");return}
+  const scan=SCAN;scan.status="running";LS.set("scan",scan);STOP=false;setBusy("scan");
+  const pending=scan.targets.filter(t=>!scan.done[t]);T0=Date.now();BASE_DONE=Object.keys(scan.done).length;paintProg();
+  $("#scanStatus").textContent="Scanning repositories…";
+  try{
+    await pool(pending,bounded("conc",8,24),t=>scanRepo(t,scan.allBranches,scan.skipUnchanged,scan.ioc||IOC).catch(e=>({repo:t,interrupted:STOP,findings:[{repo:t,branch:"?",path:"(error)",size:0,signal:"WARN: "+e.message}]})),r=>{
+      const key=r&&r.repo;
+      if(key&&!r.interrupted&&!scan.done[key]){scan.done[key]={findings:r.findings||[],pushed_at:r.pushed_at,cached:!!r.cached,at:Date.now()};LS.set("scan",scan);LS.set("cache",CACHE)}
+      paintTiles();paintProg();if(!STOP)$("#scanStatus").textContent="Scanned "+Object.keys(scan.done).length+" of "+scan.targets.length+" repositories.";
+    });
+    scan.status=Object.keys(scan.done).length===scan.targets.length?"done":"stopped";
+    const unverified=allFindings().filter(f=>!real(f)).length;
+    $("#scanStatus").textContent=scan.status==="done"?(unverified?"Scan complete. "+unverified+" checks unverified — review the findings.":"Scan complete. Your findings are ready."):"Stopped. Your completed repositories are saved.";
+    toast(scan.status==="done"?"Scan complete. Review your findings.":"Scan paused. Resume whenever you’re ready.");
+  }catch(e){scan.status="stopped";$("#scanStatus").textContent="Scan paused: "+e.message}
+  finally{LS.set("scan",scan);LS.set("cache",CACHE);T0=0;setBusy("");paintTiles();paintProg();paintBanner();renderTable()}
+}
+// Scope checkboxes merge with the typed list; the textarea is never disabled.
+$("#scanBtn").onclick=async()=>{
+  if(BUSY||CONNECTING)return;
+  if(!TOKEN){toast("Connect a token before scanning.");show("connect");return}
+  let targets=[],lines=[],scopes=[];STOP=false;setBusy("listing");$("#scanStatus").textContent="Preparing scan…";
+  try{
+    // typed list (validated) + any ticked account scopes, merged and de-duplicated
+    lines=$("#repos").value.split("\n").map(s=>s.trim()).filter(Boolean);
+    if(lines.some(s=>!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(s)))throw new Error("Use owner/repo, one repository per line.");
+    scopes=[["scopeOwn","owner"],["scopeOrg","organization_member"],["scopeCollab","collaborator"]].filter(([id])=>$("#"+id).checked).map(([,aff])=>aff);
+    targets=[...lines];
+    if(scopes.length){$("#scanStatus").textContent="Listing your repositories…";const d=await ghAll("user/repos",{affiliation:scopes.join(","),sort:"pushed"});targets.push(...d.map(r=>r.full_name))}
+    targets=[...new Set(targets)];if(!targets.length)throw new Error(scopes.length?"No repositories found for the selected scopes.":"Add at least one owner/repo, or tick a scope under the list.");
+  }catch(e){$("#scanStatus").textContent=e.message;toast(e.message);setBusy("");return}
+  setBusy("");SCAN={allBranches:$("#allBranches").checked,skipUnchanged:$("#skipUnchanged").checked,scopes:{own:$("#scopeOwn").checked,org:$("#scopeOrg").checked,collab:$("#scopeCollab").checked},manual:lines,concurrency:bounded("conc",8,24),targets,done:{},status:"running",startedAt:Date.now(),ioc:JSON.parse(JSON.stringify(IOC))};
+  SEL.clear();LS.set("scan",SCAN);paintTiles();paintProg();resetFixResults();await runScan();
+};
+$("#stopBtn").onclick=()=>{STOP=true;$("#stopBtn").disabled=true;$("#scanStatus").textContent="Stopping after active requests. Unfinished repositories will stay pending."};
+$("#resumeBtn").onclick=()=>{if(SCAN&&!BUSY){if(!TOKEN){toast("Connect your token, then resume the saved scan.");show("connect");return}show("scan");runScan()}};
+function resetScan(){if(BUSY)return;SCAN=null;LS.del("scan");LOCALF=[];LS.del("local");SEL.clear();T0=0;paintTiles();paintProg();paintBanner();renderTable();resetFixResults();$("#scanStatus").textContent="Ready when you are."}
+$("#discardBtn").onclick=()=>{resetScan();show("scan");toast("Saved scan cleared. Choose a new scan scope.")};
+$("#toReview").onclick=()=>show("review");
+
+/* ---------- exports ---------- */
+function exportJson(){dl("polinrider-results.json",JSON.stringify(allFindings(),null,2),"application/json")}
+function exportMd(){
+  const fs=allFindings(),inf=[...new Set(fs.filter(real).map(f=>f.repo))],safe=s=>String(s).replace(/[\r\n]/g," ").replace(/`/g,"'");
+  let md="# PolinRider scan\n\n"+inf.length+" infected repos, "+fs.filter(real).length+" flagged files\n\n";
+  if(SCAN)md+="Status: "+SCAN.status+" · "+Object.keys(SCAN.done).length+" / "+SCAN.targets.length+" repositories scanned\n\n";
+  for(const r of inf){md+="## "+safe(r)+"\n";fs.filter(f=>f.repo===r&&real(f)).forEach(f=>md+="- `"+safe(f.branch)+"` · `"+safe(f.path)+"` · "+safe(f.signal)+"\n");md+="\n"}
+  const warnings=fs.filter(f=>!real(f));if(warnings.length){md+="## Unverified checks\n";warnings.forEach(f=>md+="- "+safe(f.repo)+" · "+safe(f.branch)+" · "+safe(f.path)+" · "+safe(f.signal)+"\n")}
+  dl("polinrider-report.md",md,"text/markdown");
+}
+$("#exportBtn").onclick=()=>{exportJson();exportMd()};$("#exportJson").onclick=exportJson;$("#exportMd").onclick=exportMd;
+
+/* ---------- review table ---------- */
+let SORT={k:"repo",d:1};
+const rid=f=>JSON.stringify([f.repo,f.branch,f.path]);
+const repoLink=repo=>"https://github.com/"+repo.split("/").map(encodeURIComponent).join("/");
+const fileLink=f=>repoLink(f.repo)+"/blob/"+encodeURIComponent(f.branch)+"/"+f.path.split("/").map(encodeURIComponent).join("/");
+function tag(s){
+  const kind=s.startsWith("SIZE")?["red","Size anomaly"]:s.startsWith("WARN")?["blue","Unverified"]:s.startsWith("VSCODE")?["red","VS Code autorun"]:s.startsWith("ARTIFACT")?["red","Propagation artifact"]:s.startsWith("FAKE-FONT")?["red","Fake font payload"]:s.startsWith("NPM-PACKAGE")?["amber","Malicious package"]:s.startsWith("LIFECYCLE")?["amber","Lifecycle script"]:["amber","Marker detected"];
+  return el("div",null,el("span",{class:"badge "+kind[0],text:kind[1],title:s}),el("div",{class:"signal-details",text:s.replace(/^(MARKER|WARN|VSCODE-[A-Z]+|ARTIFACT|FAKE-FONT|NPM-PACKAGE|LIFECYCLE-SCRIPT):\s*/,""),title:s}))
+}
+function renderTable(){
+  const q=$("#filter").value.trim().toLowerCase(),hide=$("#hideWarn").checked,fs=allRows();
+  const rows=fs.filter(f=>(!hide||real(f))&&(!q||(f.repo+" "+f.branch+" "+f.path+" "+f.signal).toLowerCase().includes(q)));
+  rows.sort((a,b)=>{const A=a[SORT.k],B=b[SORT.k];return(A<B?-1:A>B?1:0)*SORT.d});
+  const tb=$("#tbl tbody"),frag=document.createDocumentFragment();tb.replaceChildren();$("#tblEmpty").hidden=rows.length>0;
+  $$("#tbl th[data-k]").forEach(th=>{th.classList.toggle("sorted",th.dataset.k===SORT.k);th.setAttribute("aria-sort",th.dataset.k===SORT.k?(SORT.d===1?"ascending":"descending"):"none")});
+  for(const f of rows){
+    const id=rid(f),cb=el("input",{type:"checkbox","aria-label":"Select "+f.repo+", "+f.branch+", "+f.path});cb.checked=SEL.has(id);cb.disabled=!!BUSY||!real(f);cb.dataset.unverified=String(!real(f));
+    const tr=el("tr",{class:SEL.has(id)?"sel":""},el("td",null,cb),repoCell(f),el("td",{class:"mono",text:f.branch}),fileCell(f),el("td",{class:"mono",style:"text-align:right",text:f.size?fmtB(f.size):"—"}),el("td",null,tag(f.signal)));
+    cb.onchange=()=>{cb.checked?SEL.add(id):SEL.delete(id);tr.classList.toggle("sel",cb.checked);paintSel()};frag.append(tr);
+  }
+  tb.append(frag);
+  const count=fs.filter(real).length,warns=fs.length-count,repos=new Set(fs.filter(real).map(f=>f.repo)).size;
+  $("#reviewSummary").textContent=SCAN?count+" flagged file"+(count===1?"":"s")+" across "+repos+" repos"+(warns?" · "+warns+" unverified checks":"")+(SCAN.status!=="done"?" · Scan incomplete":""):"Your scan results will appear here.";
+  $("#tableCount").textContent=rows.length+" of "+fs.length+" findings"+(hide&&warns?" · "+warns+" unverified hidden":"");
+  if(!rows.length){
+    const complete=SCAN&&SCAN.status==="done",filtered=fs.length>0||!!q;
+    $("#emptyTitle").textContent=filtered?"No findings in this view.":complete?"No signals detected.":SCAN?"Your scan is still in progress.":"Your findings start with a scan.";
+    $("#emptyText").textContent=filtered?"Clear your search or turn off “Hide unverified” to see more results.":complete?"The completed checks found no matching indicators in your selected repositories.":SCAN?"Completed repositories appear here. Continue scanning to finish your checks.":"Choose your repositories and run a scan to see what needs attention.";
+    $("#emptyScan").hidden=filtered;
+  }
+  paintSel();
+}
+function paintSel(){const n=SEL.size;$("#selCount").textContent=n+" selected";$("#fixSelected").textContent=n+" file"+(n===1?"":"s");$("#toFix").disabled=!n||!!BUSY;$("#fixBtn").disabled=!n||!!BUSY;markDone("review",n>0)}
+$("#filter").oninput=renderTable;$("#hideWarn").onchange=renderTable;
+$$("#tbl th[data-k]").forEach(th=>{th.onclick=()=>{SORT.d=SORT.k===th.dataset.k?-SORT.d:1;SORT.k=th.dataset.k;renderTable()};th.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();th.click()}}});
+$("#selAllBtn").onclick=()=>{if(BUSY)return;allRows().filter(real).forEach(f=>SEL.add(rid(f)));renderTable()};
+$("#selNoneBtn").onclick=()=>{SEL.clear();renderTable()};
+$("#toFix").onclick=()=>{if(SEL.size)show("fix")};
+
+/* ---------- fix ---------- */
+function paintFixMode(){const dry=$("#dry").checked;$("#fixBtnLabel").textContent=dry?"Preview selected fixes":"Commit selected fixes";$("#fixBtn").classList.toggle("danger",!dry);$("#fixModeTitle").textContent=dry?"Preview first. Nothing will be written.":"Live mode. These changes will be committed.";$("#fixModeText").textContent=dry?"Dry run is enabled. Check the proposed restore method and file size before committing a fix.":"Dry run is off. Each changed file will create a normal commit on its selected GitHub branch.";$("#fixModeNote").style.background=dry?"var(--blue-bg)":"var(--amber-bg)";$("#fixModeNote").style.color=dry?"var(--blue)":"var(--amber)";paintSel()}
+$("#dry").onchange=paintFixMode;
+function resetFixResults(){$("#fixTbl tbody").replaceChildren();$("#fixEmpty").hidden=false;$("#fixStatus").textContent="";progress("fixProg",0);$("#fixMeta").textContent="0 / 0 files";$("#fixEta").textContent="";markDone("fix",false)}
+$("#fixBtn").onclick=async()=>{
+  if(BUSY||CONNECTING)return;
+  const fixedIds=new Set(FIXLOG.filter(x=>/committed|deleted/.test(x.result)).map(rid));
+  let rows=allRows().filter(f=>SEL.has(rid(f))&&real(f));
+  if($("#skipFixed").checked)rows=rows.filter(f=>!fixedIds.has(rid(f)));
+  const localRows=rows.filter(f=>f.local);rows=rows.filter(f=>!f.local);
+  if(rows.length&&!TOKEN){toast("Connect a GitHub token to fix remote files (local files don't need one).");show("connect");return}
+  if($("#skipFixed").checked)rows=rows.filter(f=>!fixedIds.has(rid(f)));
+  if(!rows.length&&!localRows.length){$("#fixStatus").textContent="No pending files. All selected files are already in the fix log.";toast("No pending files to fix.");return}
+  const dry=$("#dry").checked,conc=bounded("fixConc",4,10);STOP=false;setBusy("fix");
+  const tb=$("#fixTbl tbody");tb.replaceChildren();$("#fixEmpty").hidden=true;progress("fixProg",0);$("#fixMeta").textContent="0 / "+rows.length+" files";
+  const t0=Date.now();let done=0,failed=0,committed=0;$("#fixStatus").textContent=dry?"Previewing selected fixes…":"Committing selected fixes…";
+  // Serialize files sharing a branch to avoid GitHub Contents API commit conflicts.
+  const branchJobs=new Map();
+  const job=r=>{const key=JSON.stringify([r.repo,r.branch]),prior=branchJobs.get(key)||Promise.resolve();const next=prior.then(()=>STOP?{...r,method:"—",result:"Stopped before processing"}:fixOne(r,dry)).catch(e=>({...r,method:"—",result:"Error: "+(e.status||e.message)}));branchJobs.set(key,next);return next};
+  try{
+    await pool(rows,conc,job,res=>{
+      done++;const elapsed=(Date.now()-t0)/1000;progress("fixProg",done/rows.length*100);$("#fixMeta").textContent=done+" / "+rows.length+" files";$("#fixEta").textContent=done<rows.length?"About "+fmtT((rows.length-done)*elapsed/done)+" remaining":"";
+      const error=res.result.startsWith("Error:"),wrote=/committed|deleted/.test(res.result);if(error)failed++;if(wrote)committed++;
+      tb.append(el("tr",null,el("td",null,el("a",{href:repoLink(res.repo),target:"_blank",rel:"noopener noreferrer",text:res.repo})),el("td",{class:"mono",text:res.branch}),el("td",{class:"mono"},el("a",{href:fileLink(res),target:"_blank",rel:"noopener noreferrer",text:res.path})),el("td",{text:res.method||"—"}),el("td",null,el("span",{class:"badge "+(error?"red":wrote?"green":"gray"),text:res.result||"",title:res.result||""}))));
+      if(!dry&&!res.result.startsWith("Stopped")){FIXLOG.push({repo:res.repo,branch:res.branch,path:res.path,method:res.method,result:res.result,at:Date.now()});LS.set("fixlog",FIXLOG)}
+      if(wrote)delete CACHE[res.repo];
+    });
+    const localDone=await runLocalFix(localRows,dry,tb);
+    if(localRows.length){$("#fixMeta").textContent=(done+localDone)+" / "+(rows.length+localRows.length)+" files";progress("fixProg",100)}
+    const lead=STOP?"Stopped. ":dry?"Dry run complete. ":"Fix run complete. ";
+    $("#fixStatus").textContent=lead+(done+localDone)+" / "+(rows.length+localRows.length)+" files processed"+(failed?" · "+failed+" failed":"")+(dry?". Turn off Dry run to commit.":" · "+committed+" committed.");
+    markDone("fix",!dry&&!STOP&&!failed&&done===rows.length);toast(STOP?"Fix run stopped.":failed?"Run finished with "+failed+" errors. Check the activity log.":dry?"Preview complete. No files were changed.":"Fix run complete.");
+  }catch(e){$("#fixStatus").textContent="Fix run stopped: "+e.message}
+  finally{LS.set("cache",CACHE);setBusy("");$("#fixEta").textContent=""}
+};
+$("#fixStop").onclick=()=>{STOP=true;$("#fixStop").disabled=true;$("#fixStatus").textContent="Stopping. Active requests may finish; queued fixes stay pending."};
+$("#fixLogClear").onclick=()=>{FIXLOG=[];LS.del("fixlog");toast("Fix log cleared.")};
+
+/* ---------- IOC editor ---------- */
+function loadIoc(){$("#iocMarkers").value=IOC.markers.join("\n");$("#iocConfig").value=IOC.configRegex;$("#iocEnv").value=IOC.envRegex;$("#iocRegex").value=IOC.markerRegex;$("#iocVscode").value=IOC.vscodeRegex;$("#iocArtifact").value=IOC.artifactRegex;$("#iocLifecycle").value=IOC.lifecycleRegex;$("#iocPackages").value=IOC.npmPackages.join("\n");$("#iocSize").value=IOC.sizeThreshold;$("#iocLine").value=IOC.lineThreshold}
+function validateIoc(value){
+  if(!value||typeof value!=="object"||Array.isArray(value))throw new Error("Expected an IOC JSON object.");
+  const db={};
+  for(const key of ["configRegex","envRegex","markerRegex","vscodeRegex","vscodeExecRegex","vscodeAuxRegex","artifactRegex","fontRegex","scriptRegex","packageRegex","lifecycleRegex"]){db[key]=value[key]===undefined?DEFAULT_IOC[key]:value[key];if(typeof db[key]!=="string"||!db[key].trim())throw new Error(key+" must be a nonempty regex.");try{new RegExp(db[key])}catch(e){throw new Error("Invalid regex in "+key+": "+e.message)}}
+  for(const key of ["markers","npmPackages"]){db[key]=value[key]===undefined?[...DEFAULT_IOC[key]]:value[key];if(!Array.isArray(db[key])||db[key].some(m=>typeof m!=="string"))throw new Error(key+" must be an array of strings.")}
+  for(const key of ["sizeThreshold","lineThreshold","fontMaxBytes"]){db[key]=value[key]===undefined?DEFAULT_IOC[key]:Number(value[key]);if(!Number.isSafeInteger(db[key])||db[key]<1)throw new Error(key+" must be a positive whole number.")}
+  return db;
+}
+function saveIoc(db,message){if(BUSY)return;IOC=validateIoc(db);LS.set("ioc",IOC);CACHE={};LS.set("cache",CACHE);loadIoc();$("#iocStatus").textContent=message+" Unchanged-repository cache cleared.";toast(message)}
+$("#iocSave").onclick=()=>{try{saveIoc({...IOC,configRegex:$("#iocConfig").value,envRegex:$("#iocEnv").value,markerRegex:$("#iocRegex").value,vscodeRegex:$("#iocVscode").value,artifactRegex:$("#iocArtifact").value,lifecycleRegex:$("#iocLifecycle").value,markers:$("#iocMarkers").value.split("\n").map(s=>s.trim()).filter(Boolean),npmPackages:$("#iocPackages").value.split("\n").map(s=>s.trim()).filter(Boolean),sizeThreshold:Number($("#iocSize").value),lineThreshold:Number($("#iocLine").value)},"Detection rules saved.")}catch(e){$("#iocStatus").textContent=e.message}};
+$("#iocReset").onclick=()=>saveIoc(JSON.parse(JSON.stringify(DEFAULT_IOC)),"Default rules restored.");
+$("#iocExport").onclick=()=>dl("polinrider-iocs.json",JSON.stringify(IOC,null,2),"application/json");
+$("#iocImportBtn").onclick=()=>$("#iocImport").click();
+$("#iocImport").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(BUSY)throw new Error("Wait for the active operation before importing rules.");saveIoc(data,"IOC database imported.")}catch(x){$("#iocStatus").textContent="Import failed: "+x.message}finally{e.target.value=""}};
+$("#iocUrl").onclick=async()=>{
+  const u=prompt("URL of an IOC JSON file (HTTPS or HTTP):");if(!u)return;
+  try{const url=new URL(u);if(!["https:","http:"].includes(url.protocol)||url.username||url.password)throw new Error("Use an HTTP or HTTPS URL without embedded credentials.");$("#iocUrl").disabled=true;$("#iocStatus").textContent="Loading IOC database…";const r=await fetch(url.href,{credentials:"omit",referrerPolicy:"no-referrer",redirect:"error"});if(!r.ok)throw new Error("HTTP "+r.status);const data=await r.json();if(BUSY)throw new Error("Wait for the active operation before loading rules.");saveIoc(data,"IOC database loaded.")}
+  catch(e){$("#iocStatus").textContent="Could not load rules: "+e.message}finally{$("#iocUrl").disabled=!!BUSY}
+};
+
+/* ---------- settings ---------- */
+function paintStorage(){try{let n=0;for(const k of Object.keys(localStorage))if(k.startsWith("pr2_"))n+=(localStorage.getItem(k)||"").length+k.length;$("#storageInfo").textContent=fmtB(n*2)+" used · "+(SCAN?Object.keys(SCAN.done).length:0)+" scanned repos · "+Object.keys(CACHE).length+" cached repos · "+FIXLOG.length+" fix-log entries"}catch(e){$("#storageInfo").textContent="Local storage is unavailable in this browser. Keep this tab open and export your results."}}
+$("#clearScan").onclick=()=>{resetScan();paintStorage();toast("Scan results cleared.")};
+$("#clearCache").onclick=()=>{if(BUSY)return;CACHE={};LS.del("cache");paintStorage();toast("Unchanged-repository cache cleared.")};
+$("#clearAll").onclick=()=>{if(!BUSY&&confirm("Remove your saved token, rules, scan results, cache, fix log, and theme from this browser?")){try{Object.keys(localStorage).filter(k=>k.startsWith("pr2_")).forEach(k=>localStorage.removeItem(k));location.reload()}catch(e){toast("Could not clear storage: "+e.message)}}};
+function dl(name,txt,type="application/octet-stream"){const a=el("a",{download:name});a.href=URL.createObjectURL(new Blob([txt],{type}));document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+
+/* ---------- local mode (page served by the polinrider CLI) ---------- */
+const LOCAL={token:new URLSearchParams(location.search).get("t")||"",on:false};
+let LOCALF=LS.get("local",[])||[];
+function allRows(){return allFindings().concat(LOCALF)}
+async function api(path,body){const r=await fetch(path,{method:body?"POST":"GET",headers:{"x-polinrider-token":LOCAL.token,"content-type":"application/json"},body:body?JSON.stringify(body):undefined,cache:"no-store"});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||("local API HTTP "+r.status));return j}
+function remoteWeb(u){if(!u)return"";const m=u.match(/github\.com[:/]([^/]+)\/([^/]+?)(?:\.git)?$/);return m?"https://github.com/"+m[1]+"/"+m[2]:""}
+function repoCell(f){
+  if(!f.local)return el("td",null,el("a",{href:repoLink(f.repo),target:"_blank",rel:"noopener noreferrer",text:f.repo}));
+  const td=el("td",null,el("span",{class:"badge gray",text:"local"})," ",el("span",{class:"mono",text:f.repo,title:f.repo}));
+  const w=remoteWeb(f.remote);if(w)td.append(" ",el("a",{href:w,target:"_blank",rel:"noopener noreferrer",text:"↗",title:w}));
+  return td;
+}
+function fileCell(f){
+  if(!f.local)return el("td",{class:"mono"},real(f)?el("a",{href:fileLink(f),target:"_blank",rel:"noopener noreferrer",text:f.path}):el("span",{text:f.path}));
+  const w=remoteWeb(f.remote),canLink=w&&real(f)&&!/^\(/.test(f.branch);
+  return el("td",{class:"mono"},canLink?el("a",{href:w+"/blob/"+encodeURIComponent(f.branch)+"/"+f.path.split("/").map(encodeURIComponent).join("/"),target:"_blank",rel:"noopener noreferrer",text:f.path}):el("span",{text:f.path}));
+}
+async function initLocal(){
+  if(!LOCAL.token)return;
+  try{
+    const p=await api("/api/ping");LOCAL.on=true;
+    $("#localCard").hidden=false;$$(".local-only").forEach(e=>e.hidden=false);
+    if(!$("#localPaths").value)$("#localPaths").value=p.home||p.cwd||"";
+    $("#localGitNote").textContent=p.git?"git detected — history and all branches available":"git not found — working trees only";
+    if(!TOKEN)show("scan",false);
+    toast("Local mode connected · polinrider "+p.version);
+  }catch(e){}
+}
+$("#localBrowse").onclick=async()=>{
+  const p=$("#localBrowsePath").value.trim();
+  try{const r=await api("/api/ls?path="+encodeURIComponent(p));const sel=$("#localDirs");sel.replaceChildren();
+    if(r.parent!=null)sel.append(el("option",{value:r.parent,text:"‹ up"}));
+    if(r.path)sel.append(el("option",{value:r.path,text:"• this folder"+(r.isRepo?" (git repo)":"")}));
+    for(const d of r.dirs)sel.append(el("option",{value:d.path,text:d.name+(d.isRepo?"  ·  git repo":"")}));
+    sel.hidden=false;$("#localAddDir").hidden=false;$("#localBrowsePath").value=r.path||"";
+  }catch(e){toast(e.message)}
+};
+$("#localDirs").onchange=()=>{$("#localBrowsePath").value=$("#localDirs").value};
+$("#localDirs").ondblclick=()=>{$("#localBrowse").click()};
+$("#localAddDir").onclick=()=>{const v=$("#localBrowsePath").value.trim();if(!v)return;const ta=$("#localPaths");const cur=ta.value.trim();if(cur.split("\n").includes(v)){toast("Already listed");return}ta.value=(cur?cur+"\n":"")+v;toast("Added "+v)};
+$("#localScanBtn").onclick=async()=>{
+  const paths=$("#localPaths").value.split("\n").map(s=>s.trim()).filter(Boolean);
+  if(!paths.length){toast("Add at least one folder.");return}
+  const btn=$("#localScanBtn");btn.disabled=true;$("#localStatus").textContent="Scanning locally… large trees can take a minute.";
+  try{
+    const r=await api("/api/scan",{paths,allBranches:$("#localAllBranches").checked,me:$("#localMe").value.trim()||null,iocs:IOC});
+    LOCALF=[];
+    for(const rep of r.reports)for(const f of rep.findings)LOCALF.push({repo:rep.target,branch:f.branch,path:f.path,size:f.size,signal:f.signal,local:true,remote:rep.remote||"",info:f.kind==="history"});
+    LS.set("local",LOCALF);
+    const inf=r.reports.filter(x=>x.status==="infected").length,hist=r.reports.filter(x=>x.status==="history").length;
+    $("#localStatus").textContent="Done: "+r.targets+" target(s) · "+inf+" infected · "+hist+" history-only · "+LOCALF.filter(real).length+" fixable file(s)";
+    renderTable();toast("Local scan complete");if(LOCALF.length)show("review");
+  }catch(e){$("#localStatus").textContent="Local scan failed: "+e.message}
+  finally{btn.disabled=false}
+};
+async function runLocalFix(localRows,dry,tb){
+  if(!localRows.length)return 0;let n=0;
+  const targets=[...new Set(localRows.map(f=>f.repo))];
+  try{
+    const r=await api("/api/fix",{paths:targets,only:localRows.map(f=>({target:f.repo,path:f.path})),apply:!dry,commit:$("#localCommit").checked,push:$("#localPush").checked,iocs:IOC});
+    for(const row of r.report.rows){
+      n++;
+      tb.append(el("tr",null,el("td",null,el("span",{class:"badge gray",text:"local"})," ",el("span",{class:"mono",text:row.target})),el("td",{class:"mono",text:row.branch}),el("td",{class:"mono",text:row.path}),el("td",{text:row.method||"—"}),el("td",null,el("span",{class:"badge "+(row.needs_review?"red":row.changed?"green":"gray"),text:row.result,title:row.result}))));
+      if(!dry&&row.changed){FIXLOG.push({repo:row.target,branch:row.branch,path:row.path,method:row.method,result:/deleted/.test(row.result)?"✓ deleted":"✓ committed "+row.result,at:Date.now()});LS.set("fixlog",FIXLOG)}
+    }
+    for(const note of r.report.notes||[])tb.append(el("tr",null,el("td",{text:""}),el("td",{text:""}),el("td",{text:""}),el("td",{text:"note"}),el("td",{text:note})));
+  }catch(e){tb.append(el("tr",null,el("td",{text:"local"}),el("td"),el("td"),el("td"),el("td",null,el("span",{class:"badge red",text:"Local fix failed: "+e.message}))))}
+  return n;
+}
+
+/* ---------- initialize ---------- */
+try{IOC=validateIoc(IOC)}catch(e){IOC=JSON.parse(JSON.stringify(DEFAULT_IOC));toast("Saved detection rules were invalid. Default rules are active.")}
+if(SCAN&&(!Array.isArray(SCAN.targets)||!SCAN.done||typeof SCAN.done!=="object"))SCAN=null;
+if(SCAN){$("#allBranches").checked=!!SCAN.allBranches;$("#skipUnchanged").checked=SCAN.skipUnchanged!==false;const sc=SCAN.scopes||{};$("#scopeOwn").checked=!!sc.own;$("#scopeOrg").checked=!!sc.org;$("#scopeCollab").checked=!!sc.collab;$("#conc").value=SCAN.concurrency||8;$("#repos").value=(SCAN.manual!=null?SCAN.manual:(SCAN.scanAll?[]:SCAN.targets)).join("\n");if(SCAN.status==="running")SCAN.status="stopped"}
+loadIoc();paintTheme();paintTok();paintTiles();paintProg();paintBanner();renderTable();paintFixMode();
+if(SCAN)$("#scanStatus").textContent=SCAN.status==="done"?"Saved scan complete. Review your findings.":"Saved progress found. Resume when you’re ready.";
+show(TOKEN?(SCAN?(SCAN.status==="done"?"review":"scan"):"scan"):"connect",false);
+initLocal();
+
+</script>
+</body>
+</html>
