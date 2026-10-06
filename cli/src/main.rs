@@ -103,6 +103,7 @@ impl Paint {
     fn badge(&self, sig: &str) -> String {
         let (code, label) = if sig.starts_with("SIZE") { ("31", "size anomaly") }
             else if sig.starts_with("WARN") { ("34", "unverified") }
+            else if sig.starts_with("KNOWN-PAYLOAD") { ("31", "known payload") }
             else if sig.starts_with("VSCODE") { ("31", "vscode autorun") }
             else if sig.starts_with("ARTIFACT") { ("31", "artifact") }
             else if sig.starts_with("FAKE-FONT") { ("31", "fake font") }

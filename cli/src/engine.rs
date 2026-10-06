@@ -7,6 +7,7 @@
 use regex::{Regex, RegexBuilder};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 
 // Marker strings are assembled at compile time so this source never contains the literals.
 pub const DROP_KEY: &str = concat!("AUTH_API", "_KEY");
@@ -23,6 +24,10 @@ pub struct Ioc {
     pub vscode_exec_regex: String,
     pub vscode_aux_regex: String,
     pub artifact_regex: String,
+    /// `.gitignore` files are scanned for entries that hide the propagation scripts.
+    pub gitignore_regex: String,
+    /// Exact SHA-256 hashes of known payload files — a match is certain.
+    pub known_hashes: Vec<String>,
     pub font_regex: String,
     pub font_max_bytes: u64,
     pub script_regex: String,
@@ -45,17 +50,25 @@ impl Default for Ioc {
             vscode_regex: r"(^|/)\.vscode/(tasks|settings|launch)\.json$".into(),
             vscode_exec_regex: r"curl\b|wget\b|powershell|Invoke-|\biex\b|\bnode\b|\bbash\b|\bsh\b|\bcmd\b|\|\s*(ba)?sh\b|base64|atob\(|\.(woff2?|ttf|dict|svg|png|jpe?g|css)\b|vercel\.app|onrender\.com|short\.gy".into(),
             vscode_aux_regex: r"(^|/)\.vscode/[^/]+\.(dict|txt|log|dat|bin)$".into(),
-            artifact_regex: r"(^|/)(temp_auto_push\.bat|config\.bat)$".into(),
+            artifact_regex: r"(^|/)(temp_auto_push\.bat|temp_interactive_push\.bat|config\.bat)$".into(),
+            gitignore_regex: r"(^|/)\.gitignore$".into(),
+            known_hashes: [
+                "7922bce938af965008c1481f5f47d6c85b09217e10147fa35979e8aa4585ff8d", // B2 jest.config.js
+                "586e1904c8e8d69ab58e9e1c77fc5e7a044d910bb57b3f3b8d587368b4f84d15", // B2 fake fa-solid-900.woff2
+                "d16f87b70496999cfbb907ff3a7693cdfea6db5ecd21d6faafbb8320530ff2a4", // B2 .vscode/tasks.json
+                "92823600a82bdc05b1474176504f94e725068852764577f58c9529dedb7c35ed", // B2 .vscode/tasks.json (variant)
+                "1abb6c799080b3641d88dc541d0eafbc5a8c153d05d482745191e8887a1debf5", // B2 .vscode/settings.json
+            ].iter().map(|s| s.to_string()).collect(),
             font_regex: r"(^|/)(public|static|assets|webfonts|fonts)/.*\.(woff2?|ttf)$".into(),
             font_max_bytes: 524_288,
-            script_regex: r"^(App|app|index)\.js$".into(),
+            script_regex: r"^(App|app|index)\.js$|(^|/)migrations/[^/]+\.(js|cjs|mjs|ts)$".into(),
             package_regex: r"(^|/)package\.json$".into(),
             npm_packages: [
                 "tailwindcss-style-animate", "tailwind-mainanimation", "tailwind-autoanimation", "tailwind-animationbased",
                 "tailwindcss-typography-style", "tailwindcss-style-modify", "tailwindcss-animate-style", "jsonwebauth",
             ].iter().map(|s| s.to_string()).collect(),
             lifecycle_regex: r"\bnode\s+-e\b|curl\b|wget\b|powershell|Invoke-Expression|\biex\b|bash\s+-c|\|\s*(ba)?sh\b|base64\s+(-d|--decode)|certutil|bitsadmin".into(),
-            marker_regex: r"A[0-9]-[0-9]{4}|C2[0-9]{5}A|RS2[0-9]{5}|_\$_[0-9a-f]{4,}|createRequire|global\['|function MDy\(|rmcej%otb%|Cot%3t=shtP|8-st[0-9]+".into(),
+            marker_regex: r#"A[0-9]-[0-9]{4}|C2[0-9]{5}A|RS2[0-9]{5}|_\$_[0-9a-f]{4,}|createRequire|global\['|function MDy\(|rmcej%otb%|Cot%3t=shtP|8-st[0-9]+|_0x[0-9a-f]{4,}|global\.i\s*=\s*['"][A-Z]?[0-9]-[0-9]{3,4}"#.into(),
             markers: default_markers(),
             size_threshold: 8000,
             line_threshold: 400,
@@ -67,8 +80,9 @@ impl Default for Ioc {
 fn default_markers() -> Vec<String> {
     let mut m: Vec<String> = [
         // loader strings
-        "A9-4091", "A4-1928", "RS260605", DROP_KEY, "auth-con-firm", B64SIG, EVAL_MARK, "rmcej%otb%", "Cot%3t=shtP",
-        "_$_1e42", "LAST_COMMIT_DATE", "temp_auto_push", "Sec-V",
+        "A9-4091", "A4-1928", "RS260605", "9-4091", "9-3333", "9-1591-1", "9-6516-2", "A8-1817-3", "A9-3947-2",
+        DROP_KEY, "auth-con-firm", B64SIG, EVAL_MARK, "rmcej%otb%", "Cot%3t=shtP",
+        "_$_1e42", "LAST_COMMIT_DATE", "temp_auto_push", "temp_interactive_push", "Sec-V",
         // XOR keys and template fingerprint
         "2[gWfGj;<:-93Z^C", "m6:tTh^D)cBz?NM]", "ThZG+0jfXE6VAGOJ", "e9b53a7c-2342-4b15-b02d-bd8b8f6a03f9",
         // blockchain dead-drops (ETH / TRON / Aptos)
@@ -109,7 +123,8 @@ pub fn fmt_b(n: u64) -> String {
 pub struct Engine {
     pub ioc: Ioc,
     cfg: Regex, env: Regex, vsc: Regex, vsc_exec: Regex, aux: Regex, art: Regex, font: Regex,
-    script: Regex, pkg: Regex, lifecycle: Regex, marker: Regex,
+    script: Regex, pkg: Regex, lifecycle: Regex, marker: Regex, gitignore: Regex, gi_hide: Regex,
+    decoy_tasks: Regex, hide_term: Regex,
     run_on: Regex, hidden: Regex, padded: Regex, js_font: Regex, hexrun: Regex, code_aux: Regex,
     iife_start: Regex, iife_end: Regex, ws80: Regex, import_dotenv: Regex, cr_import: Regex, cr_const: Regex,
     require_call: Regex, export_re: Regex, blank3: Regex,
@@ -138,6 +153,10 @@ impl Engine {
             vsc_exec: ci(&ioc.vscode_exec_regex)?, aux: ci(&ioc.vscode_aux_regex)?, art: ci(&ioc.artifact_regex)?,
             font: ci(&ioc.font_regex)?, script: ci(&ioc.script_regex)?, pkg: ci(&ioc.package_regex)?,
             lifecycle: ci(&ioc.lifecycle_regex)?, marker: cs(&ioc.marker_regex)?,
+            gitignore: ci(&ioc.gitignore_regex)?,
+            gi_hide: ci(r"temp_auto_push|temp_interactive_push|^\s*config\.bat\s*$")?,
+            decoy_tasks: ci(r#""tasks"\s*:\s*\{[\s\S]{0,600}?"runOn"\s*:\s*"folderOpen""#)?,
+            hide_term: ci(r#""terminal\.integrated\.hideOnStartup"\s*:\s*"always""#)?,
             run_on: ci(r#""runOn"\s*:\s*"folderOpen""#)?,
             hidden: ci(r#""hide"\s*:\s*true|"reveal"\s*:\s*"(never|silent)"|"echo"\s*:\s*false|"close"\s*:\s*true"#)?,
             padded: cs(r"\S[ \t]{80,}\S")?,
@@ -170,9 +189,22 @@ impl Engine {
     pub fn is_font(&self, p: &str) -> bool { self.font.is_match(p) }
     pub fn is_script(&self, p: &str) -> bool { self.script.is_match(p) }
     pub fn is_pkg(&self, p: &str) -> bool { self.pkg.is_match(p) }
+    pub fn is_gitignore(&self, p: &str) -> bool { self.gitignore.is_match(p) }
     pub fn interesting(&self, p: &str) -> bool {
         self.is_cfg(p) || self.is_env(p) || self.is_vscode(p) || self.is_vscode_aux(p) || self.is_artifact(p)
-            || self.is_font(p) || self.is_script(p) || self.is_pkg(p)
+            || self.is_font(p) || self.is_script(p) || self.is_pkg(p) || self.is_gitignore(p)
+    }
+
+    /// `.gitignore` lines the worm adds so its propagation scripts never show up in `git status`.
+    pub fn gitignore_signal(&self, content: &str) -> String {
+        let hits: Vec<&str> = content.lines().filter(|l| self.gi_hide.is_match(l)).map(|l| l.trim()).collect();
+        if hits.is_empty() { String::new() } else { format!("ARTIFACT: .gitignore hides propagation script ({})", hits.iter().take(3).cloned().collect::<Vec<_>>().join(", ")) }
+    }
+
+    fn known_hash(&self, bytes: &[u8]) -> Option<String> {
+        if self.ioc.known_hashes.is_empty() { return None; }
+        let hex = format!("{:x}", Sha256::digest(bytes));
+        if self.ioc.known_hashes.iter().any(|h| h.eq_ignore_ascii_case(&hex)) { Some(hex) } else { None }
     }
 
     fn longest_line(c: &str) -> usize { c.split('\n').map(|l| l.chars().count()).max().unwrap_or(0) }
@@ -219,6 +251,8 @@ impl Engine {
         if base == "settings.json" {
             if self.allow_auto.is_match(content) { h.push("task.allowAutomaticTasks preset".into()); }
             if self.trust_off.is_match(content) { h.push("workspace trust disabled".into()); }
+            if self.decoy_tasks.is_match(content) { h.push("decoy folderOpen task block".into()); }
+            if self.hide_term.is_match(content) { h.push("terminal hidden on startup".into()); }
             if !m.is_empty() { h.push(m); }
             return if h.is_empty() { String::new() } else { format!("VSCODE-SETTINGS: {}", h.join(", ")) };
         }
@@ -306,8 +340,13 @@ impl Engine {
         let scr = self.is_script(path);
         if scr && !cfg && size <= self.ioc.size_threshold { return String::new(); }
         let bytes = match read() { Some(b) => b, None => return "WARN: unable to read file".into() };
+        if let Some(hex) = self.known_hash(&bytes) {
+            let what = if font { "fake font" } else if self.is_vscode(path) { "vscode file" } else if cfg { "config" } else { "file" };
+            return format!("KNOWN-PAYLOAD: sha256 {}… exact match ({})", &hex[..12], what);
+        }
         if font { return self.font_signal(&bytes); }
         let text = String::from_utf8_lossy(&bytes).to_string();
+        if self.is_gitignore(path) { return self.gitignore_signal(&text); }
         if self.is_vscode_aux(path) { return self.disguised_signal(&text); }
         if self.is_vscode(path) { return self.vscode_signal(path, &text); }
         if self.is_pkg(path) { return self.pkg_signal(&text); }
@@ -376,12 +415,18 @@ impl Engine {
 
     /// Decide how to clean one file. `history` yields (sha, bytes) of older versions, newest first.
     pub fn plan(&self, path: &str, sig: &str, cur: &str, history: Option<&dyn Fn() -> Vec<(String, Vec<u8>)>>) -> Plan {
-        if self.is_artifact(path) || sig.starts_with("FAKE-FONT") || sig.starts_with("ARTIFACT") {
+        if self.is_gitignore(path) {
+            let kept: Vec<&str> = cur.split('\n').filter(|l| !self.gi_hide.is_match(l)).collect();
+            let kept = kept.join("\n");
+            return if kept == cur { Plan::Review("manual review".into()) } else { Plan::Rewrite { content: kept, method: "strip .gitignore".into() } };
+        }
+        if self.is_artifact(path) || sig.starts_with("FAKE-FONT") || sig.starts_with("ARTIFACT")
+            || (self.is_font(path) && sig.starts_with("KNOWN-PAYLOAD")) {
             return Plan::Delete("delete file".into());
         }
         if self.is_vscode(path) {
             let base = path.rsplit('/').next().unwrap_or(path).to_lowercase();
-            return if base == "tasks.json" && sig.starts_with("VSCODE-AUTORUN") { Plan::Delete("delete tasks.json".into()) }
+            return if base == "tasks.json" && (sig.starts_with("VSCODE-AUTORUN") || sig.starts_with("KNOWN-PAYLOAD")) { Plan::Delete("delete tasks.json".into()) }
                    else { Plan::Review("manual review".into()) };
         }
         if self.is_pkg(path) { return self.strip_package(cur); }

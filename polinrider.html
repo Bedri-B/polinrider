@@ -167,7 +167,7 @@ main{max-width:1512px;margin:auto;padding:33px 34px 25px}.page-heading{display:f
 
     <section class="view" id="v-help" aria-label="Help and guidance"><div class="help-grid">
       <div class="card help-card"><h2>Four steps to clean code</h2><ol><li><strong>Connect.</strong> Add a GitHub token with access to your repositories.</li><li><strong>Scan.</strong> Choose repositories and branches. Progress saves per repository.</li><li><strong>Review.</strong> Inspect signals and select the files you want to fix.</li><li><strong>Fix.</strong> Preview with a dry run, then turn it off to commit the changes.</li></ol></div>
-      <div class="card help-card"><h2>What the scanner detects</h2><p><b>Config injection</b> — PolinRider / auth-con-firm hides a remote-code loader in <code>postcss</code>, <code>next</code>, <code>vite</code>, <code>tailwind</code>, <code>eslint</code> and similar configs: a ~30 KB obfuscated blob after whitespace, or an <code>atob</code>+fetch loader paired with a committed <code>.env</code>.</p><p><b>VS Code autorun (TaskJacker)</b> — a <code>.vscode/tasks.json</code> with <code>"runOn":"folderOpen"</code> and a hidden presentation that runs <code>curl | bash</code> or <code>node</code> on a disguised file the moment the folder opens; <code>settings.json</code> may pre-enable <code>task.allowAutomaticTasks</code>.</p><p><b>Fake fonts</b> — JavaScript stored in <code>.woff2</code>/<code>.ttf</code> files under <code>public/</code> or <code>assets/</code>. <b>Artifacts</b> — the propagation script <code>temp_auto_push.bat</code> (a near-certain sign of past compromise). <b>npm vector</b> — known malicious dependencies and install-time lifecycle scripts in <code>package.json</code>. Signals are indicators for review; large legitimate configs can also be flagged.</p></div>
+      <div class="card help-card"><h2>What the scanner detects</h2><p><b>Config injection</b> — PolinRider / auth-con-firm hides a remote-code loader in <code>postcss</code>, <code>next</code>, <code>vite</code>, <code>tailwind</code>, <code>eslint</code> and similar configs: a ~30 KB obfuscated blob after whitespace, or an <code>atob</code>+fetch loader paired with a committed <code>.env</code>.</p><p><b>VS Code autorun (TaskJacker)</b> — a <code>.vscode/tasks.json</code> with <code>"runOn":"folderOpen"</code> and a hidden presentation that runs <code>curl | bash</code> or <code>node</code> on a disguised file the moment the folder opens; <code>settings.json</code> may pre-enable <code>task.allowAutomaticTasks</code>.</p><p><b>Variants</b> — the original <code>rmcej%otb%</code>/<code>_$_1e42</code> loader, the rotated <code>Cot%3t=shtP</code>/<code>MDy</code> build, variant A (<code>global.i='A8-…'</code>, also injected into <code>migrations/*.js</code>), and the 2026-10 <b>B2</b> wave (<code>global['!']='9-6516-2'</code> with a javascript-obfuscator <code>_0x…</code> string table, forged commits from a +0200 timezone, <code>jest.config.js</code>, <code>fa-solid-900.woff2</code> inside decoy Font Awesome folders). Exact known payload files are also matched by SHA-256.</p><p><b>Fake fonts</b> — JavaScript stored in <code>.woff2</code>/<code>.ttf</code> files under <code>public/</code> or <code>assets/</code>. <b>Artifacts</b> — the propagation script <code>temp_auto_push.bat</code> (a near-certain sign of past compromise). <b>npm vector</b> — known malicious dependencies and install-time lifecycle scripts in <code>package.json</code>. Signals are indicators for review; large legitimate configs can also be flagged.</p></div>
       <div class="card help-card wide"><h2>A few things to know</h2><details open><summary>How are fixes made?</summary><p>The tool reads a file through the GitHub Contents API. For config files, it searches up to 30 historical commits for a clean version; otherwise it reconstructs the file by stripping suspicious long lines. For .env files, it removes the known dropper line. For package.json, it removes known malicious dependencies and install-time lifecycle scripts. Weaponized <code>.vscode/tasks.json</code>, fake font payloads and <code>temp_auto_push.bat</code> are <b>deleted</b> (there is no clean version to restore). Flagged <code>settings.json</code>/<code>launch.json</code> and root scripts are left for manual review. A live fix writes a normal commit to the selected branch. Review the restore method carefully: a historical version may omit recent legitimate changes.</p></details><details><summary>Can I stop and resume?</summary><p>Yes. Completed repositories are journaled in local storage. Stop leaves unfinished repositories pending, so Resume checks them again. Open this same file in the same browser to return to your saved scan. Keep the file at the same location; file-URL storage behavior can differ between browsers.</p></details><details><summary>Where does my data go?</summary><p>Scanning and fixing communicate directly with api.github.com. Repository code is read as text and never executed. Your token stays in memory unless you choose to remember it. The optional “Load from URL” action fetches only the IOC URL you provide, without your GitHub token.</p></details><details><summary>What access does my token need?</summary><p>Use a classic token with the repo scope, or a fine-grained token covering your target repositories with Contents read permission for scanning and read/write for fixing. Organization approval, SSO, branch protection, or repository rules may restrict access or commits.</p></details><details><summary>What if GitHub limits my requests?</summary><p>The API meter tracks the remaining request budget. The tool waits and retries rate-limited requests automatically. Lower concurrency to reduce simultaneous requests. Unverified results indicate incomplete checks and should be scanned again.</p></details></div>
     </div></section>
     <footer class="footer"><span><svg aria-hidden="true"><use href="#i-shield"/></svg>PolinRider · Repository security, in your hands.</span><span>No installation. No telemetry. Just your browser.</span></footer>
@@ -187,23 +187,27 @@ const DEFAULT_IOC={
   vscodeRegex:"(^|/)\\.vscode/(tasks|settings|launch)\\.json$",
   vscodeExecRegex:"curl\\b|wget\\b|powershell|Invoke-|\\biex\\b|\\bnode\\b|\\bbash\\b|\\bsh\\b|\\bcmd\\b|\\|\\s*(ba)?sh\\b|base64|atob\\(|\\.(woff2?|ttf|dict|svg|png|jpe?g|css)\\b|vercel\\.app|onrender\\.com|short\\.gy",
   // high-confidence leftovers: propagation script + disguised payload files
-  artifactRegex:"(^|/)(temp_auto_push\\.bat|config\\.bat)$",
+  artifactRegex:"(^|/)(temp_auto_push\\.bat|temp_interactive_push\\.bat|config\\.bat)$",
+  // .gitignore entries the worm adds to hide its propagation scripts
+  gitignoreRegex:"(^|/)\\.gitignore$",
+  // exact SHA-256 of known payload files (variant B2 wave, 2026-10-06) — a match is certain
+  knownHashes:["7922bce938af965008c1481f5f47d6c85b09217e10147fa35979e8aa4585ff8d","586e1904c8e8d69ab58e9e1c77fc5e7a044d910bb57b3f3b8d587368b4f84d15","d16f87b70496999cfbb907ff3a7693cdfea6db5ecd21d6faafbb8320530ff2a4","92823600a82bdc05b1474176504f94e725068852764577f58c9529dedb7c35ed","1abb6c799080b3641d88dc541d0eafbc5a8c153d05d482745191e8887a1debf5"],
   // non-JSON files inside .vscode (e.g. spellright.dict) are legitimate unless their CONTENT is code — judged by content, never by name
   vscodeAuxRegex:"(^|/)\\.vscode/[^/]+\\.(dict|txt|log|dat|bin)$",
   // fake-font vector: JavaScript hidden in .woff/.woff2/.ttf under asset folders
   fontRegex:"(^|/)(public|static|assets|webfonts|fonts)/.*\\.(woff2?|ttf)$",
   fontMaxBytes:524288,
   // root scripts the campaign also injects (checked only when unusually large)
-  scriptRegex:"^(App|app|index)\\.js$",
+  scriptRegex:"^(App|app|index)\\.js$|(^|/)migrations/[^/]+\\.(js|cjs|mjs|ts)$",
   // npm supply-chain vector: malicious deps + lifecycle scripts
   packageRegex:"(^|/)package\\.json$",
   npmPackages:["tailwindcss-style-animate","tailwind-mainanimation","tailwind-autoanimation","tailwind-animationbased","tailwindcss-typography-style","tailwindcss-style-modify","tailwindcss-animate-style","jsonwebauth"],
   lifecycleRegex:"\\bnode\\s+-e\\b|curl\\b|wget\\b|powershell|Invoke-Expression|\\biex\\b|bash\\s+-c|\\|\\s*(ba)?sh\\b|base64\\s+(-d|--decode)|certutil|bitsadmin",
   // obfuscator fingerprints (original rmcej%otb% variant + rotated Cot%3t=shtP variant)
-  markerRegex:"A[0-9]-[0-9]{4}|C2[0-9]{5}A|RS2[0-9]{5}|_\\$_[0-9a-f]{4,}|createRequire|global\\['|function MDy\\(|rmcej%otb%|Cot%3t=shtP|8-st[0-9]+",
+  markerRegex:"A[0-9]-[0-9]{4}|C2[0-9]{5}A|RS2[0-9]{5}|_\\$_[0-9a-f]{4,}|createRequire|global\\['|function MDy\\(|rmcej%otb%|Cot%3t=shtP|8-st[0-9]+|_0x[0-9a-f]{4,}|global\\.i\\s*=\\s*['\"][A-Z]?[0-9]-[0-9]{3,4}",
   markers:[
     // loader strings
-    "A9-4091","A4-1928","RS260605",DROP_KEY,"auth-con-firm",B64SIG,EVAL_TOK+"(proxyInfo)","rmcej%otb%","Cot%3t=shtP","_$_1e42","LAST_COMMIT_DATE","temp_auto_push","Sec-V",
+    "A9-4091","A4-1928","RS260605","9-4091","9-3333","9-1591-1","9-6516-2","A8-1817-3","A9-3947-2",DROP_KEY,"auth-con-firm",B64SIG,EVAL_TOK+"(proxyInfo)","rmcej%otb%","Cot%3t=shtP","_$_1e42","LAST_COMMIT_DATE","temp_auto_push","temp_interactive_push","Sec-V",
     // XOR keys and template fingerprint
     "2[gWfGj;<:-93Z^C","m6:tTh^D)cBz?NM]","ThZG+0jfXE6VAGOJ","e9b53a7c-2342-4b15-b02d-bd8b8f6a03f9",
     // blockchain dead-drops (ETH / TRON / Aptos)
@@ -275,8 +279,13 @@ async function pool(items,n,fn,onEach){
 function rx(re,s,flags="i"){try{return new RegExp(re,flags).test(s)}catch(e){return false}}
 const isCfg=(p,db=IOC)=>rx(db.configRegex,p), isEnv=(p,db=IOC)=>rx(db.envRegex,p), isVscode=(p,db=IOC)=>rx(db.vscodeRegex,p),
       isArtifact=(p,db=IOC)=>rx(db.artifactRegex,p), isFont=(p,db=IOC)=>rx(db.fontRegex,p), isScript=(p,db=IOC)=>rx(db.scriptRegex,p), isPkg=(p,db=IOC)=>rx(db.packageRegex,p),
-      isVscodeAux=(p,db=IOC)=>rx(db.vscodeAuxRegex,p);
+      isVscodeAux=(p,db=IOC)=>rx(db.vscodeAuxRegex,p), isGitignore=(p,db=IOC)=>rx(db.gitignoreRegex,p);
 const longest=c=>c.split("\n").reduce((a,l)=>Math.max(a,l.length),0);
+// SHA-256 of a binary string (from atob) — used to match exact known payload files
+async function sha256hex(bin){try{if(!(self.crypto&&crypto.subtle))return"";const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i)&255;const d=await crypto.subtle.digest("SHA-256",u);return[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,"0")).join("")}catch(e){return""}}
+const GI_HIDE=/temp_auto_push|temp_interactive_push|^\s*config\.bat\s*$/i;
+// .gitignore lines the worm adds so its propagation scripts never show up in `git status`
+function gitignoreSignal(content){const hits=content.split("\n").filter(l=>GI_HIDE.test(l)).map(l=>l.trim());return hits.length?"ARTIFACT: .gitignore hides propagation script ("+hits.slice(0,3).join(", ")+")":""}
 // non-JSON files under .vscode: a real dictionary/log is plain words; a disguised payload is code, hex, or a payload-length line
 function disguisedSignal(content,db=IOC){
   const code=/\brequire\s*\(|\bfunction\b|=>|\bprocess\.|child_process|Buffer\.from|\bglobal\[|https?:\/\//.test(content)||/[0-9a-f]{200,}/i.test(content.replace(/\s/g,""));
@@ -298,6 +307,8 @@ function vscodeSignal(path,content,db=IOC){
   if(base==="settings.json"){
     if(/"task\.allowAutomaticTasks"\s*:\s*"?(on|true)"?/i.test(content))h.push("task.allowAutomaticTasks preset");
     if(/"security\.workspace\.trust\.enabled"\s*:\s*false/i.test(content))h.push("workspace trust disabled");
+    if(/"tasks"\s*:\s*\{[\s\S]{0,600}?"runOn"\s*:\s*"folderOpen"/i.test(content))h.push("decoy folderOpen task block");
+    if(/"terminal\.integrated\.hideOnStartup"\s*:\s*"always"/i.test(content))h.push("terminal hidden on startup");
     if(m)h.push(m);return h.length?"VSCODE-SETTINGS: "+h.join(", "):"";
   }
   if(/"preLaunchTask"/i.test(content)&&exec)h.push("preLaunchTask + exec");
@@ -347,8 +358,8 @@ async function scanRepo(full,allBranches,skipUnchanged,db=IOC){
     if(tree&&tree.truncated)out.push(warning(br,"(truncated tree)","GitHub returned a partial file tree; some files were not checked"));
     for(const nd of(tree&&tree.tree)||[]){
       if(STOP)return pending();
-      if(nd.type!=="blob")continue;const p=nd.path,cfg=isCfg(p,db),env=isEnv(p,db),vsc=isVscode(p,db),aux=isVscodeAux(p,db),art=isArtifact(p,db),font=isFont(p,db),scr=isScript(p,db),pkg=isPkg(p,db);
-      if(!(cfg||env||vsc||aux||art||font||scr||pkg))continue;
+      if(nd.type!=="blob")continue;const p=nd.path,cfg=isCfg(p,db),env=isEnv(p,db),vsc=isVscode(p,db),aux=isVscodeAux(p,db),art=isArtifact(p,db),font=isFont(p,db),scr=isScript(p,db),pkg=isPkg(p,db),gi=isGitignore(p,db);
+      if(!(cfg||env||vsc||aux||art||font||scr||pkg||gi))continue;
       const size=nd.size||0;let sig="";
       if(art)sig="ARTIFACT: propagation script (temp_auto_push)";
       else if(cfg&&size>db.sizeThreshold)sig="SIZE-ANOMALY("+fmtB(size)+")";
@@ -356,8 +367,10 @@ async function scanRepo(full,allBranches,skipUnchanged,db=IOC){
       else if(scr&&size<=db.sizeThreshold)sig="";                // root App.js/index.js only inspected when unusually large
       else{
         let blob=seen.get(nd.sha);
-        if(!blob){try{const b=await gh("repos/"+full+"/git/blobs/"+nd.sha);const raw=b.content?atob(b.content.replace(/\n/g,"")):"";blob={raw,content:font?raw:b64d(b.content||"")}}catch(e){blob={error:"Unable to read file: "+(e.status||e.message)}}seen.set(nd.sha,blob)}
+        if(!blob){try{const b=await gh("repos/"+full+"/git/blobs/"+nd.sha);const raw=b.content?atob(b.content.replace(/\n/g,"")):"";blob={raw,content:font?raw:b64d(b.content||""),hash:(db.knownHashes&&db.knownHashes.length)?await sha256hex(raw):""}}catch(e){blob={error:"Unable to read file: "+(e.status||e.message)}}seen.set(nd.sha,blob)}
         if(blob.error)sig="WARN: "+blob.error;
+        else if(blob.hash&&db.knownHashes.includes(blob.hash))sig="KNOWN-PAYLOAD: sha256 "+blob.hash.slice(0,12)+"… exact match ("+(font?"fake font":vsc?"vscode file":cfg?"config":"file")+")";
+        else if(gi)sig=gitignoreSignal(blob.content);
         else if(font)sig=fontSignal(blob.raw,db);
         else if(aux)sig=disguisedSignal(blob.content,db);
         else if(vsc)sig=vscodeSignal(p,blob.content,db);
@@ -399,8 +412,9 @@ function reconstruct(c){
 const DEL_MSG="security: remove PolinRider/TaskJacker artifact";
 // Decide how to clean one file. Returns {content,method} to rewrite, {action:"delete"} or {action:"review"}.
 async function cleanFor(full,branch,path,cur,sig=""){
-  if(isArtifact(path)||/^(FAKE-FONT|ARTIFACT)/.test(sig))return{action:"delete",method:"delete file"};
-  if(isVscode(path)){const base=path.split("/").pop().toLowerCase();return(base==="tasks.json"&&/^VSCODE-AUTORUN/.test(sig))?{action:"delete",method:"delete tasks.json"}:{action:"review",method:"manual review"}}
+  if(isGitignore(path)){const kept=cur.split("\n").filter(l=>!GI_HIDE.test(l)).join("\n");return kept===cur?{action:"review",method:"manual review"}:{content:kept,method:"strip .gitignore"}}
+  if(isArtifact(path)||/^(FAKE-FONT|ARTIFACT)/.test(sig)||(isFont(path)&&/^KNOWN-PAYLOAD/.test(sig)))return{action:"delete",method:"delete file"};
+  if(isVscode(path)){const base=path.split("/").pop().toLowerCase();return(base==="tasks.json"&&/^(VSCODE-AUTORUN|KNOWN-PAYLOAD)/.test(sig))?{action:"delete",method:"delete tasks.json"}:{action:"review",method:"manual review"}}
   if(isPkg(path)){
     try{const j=JSON.parse(cur);let changed=false;
       for(const k of["dependencies","devDependencies","optionalDependencies","peerDependencies"]){if(!j[k])continue;for(const n of IOC.npmPackages)if(j[k][n]!==undefined){delete j[k][n];changed=true}}
@@ -583,8 +597,8 @@ const rid=f=>JSON.stringify([f.repo,f.branch,f.path]);
 const repoLink=repo=>"https://github.com/"+repo.split("/").map(encodeURIComponent).join("/");
 const fileLink=f=>repoLink(f.repo)+"/blob/"+encodeURIComponent(f.branch)+"/"+f.path.split("/").map(encodeURIComponent).join("/");
 function tag(s){
-  const kind=s.startsWith("SIZE")?["red","Size anomaly"]:s.startsWith("WARN")?["blue","Unverified"]:s.startsWith("VSCODE")?["red","VS Code autorun"]:s.startsWith("ARTIFACT")?["red","Propagation artifact"]:s.startsWith("FAKE-FONT")?["red","Fake font payload"]:s.startsWith("NPM-PACKAGE")?["amber","Malicious package"]:s.startsWith("LIFECYCLE")?["amber","Lifecycle script"]:["amber","Marker detected"];
-  return el("div",null,el("span",{class:"badge "+kind[0],text:kind[1],title:s}),el("div",{class:"signal-details",text:s.replace(/^(MARKER|WARN|VSCODE-[A-Z]+|ARTIFACT|FAKE-FONT|NPM-PACKAGE|LIFECYCLE-SCRIPT):\s*/,""),title:s}))
+  const kind=s.startsWith("SIZE")?["red","Size anomaly"]:s.startsWith("WARN")?["blue","Unverified"]:s.startsWith("KNOWN-PAYLOAD")?["red","Known payload"]:s.startsWith("VSCODE")?["red","VS Code autorun"]:s.startsWith("ARTIFACT")?["red","Propagation artifact"]:s.startsWith("FAKE-FONT")?["red","Fake font payload"]:s.startsWith("NPM-PACKAGE")?["amber","Malicious package"]:s.startsWith("LIFECYCLE")?["amber","Lifecycle script"]:["amber","Marker detected"];
+  return el("div",null,el("span",{class:"badge "+kind[0],text:kind[1],title:s}),el("div",{class:"signal-details",text:s.replace(/^(MARKER|WARN|VSCODE-[A-Z]+|ARTIFACT|FAKE-FONT|KNOWN-PAYLOAD|NPM-PACKAGE|LIFECYCLE-SCRIPT):\s*/,""),title:s}))
 }
 function renderTable(){
   const q=$("#filter").value.trim().toLowerCase(),hide=$("#hideWarn").checked,fs=allRows();
@@ -659,8 +673,8 @@ function loadIoc(){$("#iocMarkers").value=IOC.markers.join("\n");$("#iocConfig")
 function validateIoc(value){
   if(!value||typeof value!=="object"||Array.isArray(value))throw new Error("Expected an IOC JSON object.");
   const db={};
-  for(const key of ["configRegex","envRegex","markerRegex","vscodeRegex","vscodeExecRegex","vscodeAuxRegex","artifactRegex","fontRegex","scriptRegex","packageRegex","lifecycleRegex"]){db[key]=value[key]===undefined?DEFAULT_IOC[key]:value[key];if(typeof db[key]!=="string"||!db[key].trim())throw new Error(key+" must be a nonempty regex.");try{new RegExp(db[key])}catch(e){throw new Error("Invalid regex in "+key+": "+e.message)}}
-  for(const key of ["markers","npmPackages"]){db[key]=value[key]===undefined?[...DEFAULT_IOC[key]]:value[key];if(!Array.isArray(db[key])||db[key].some(m=>typeof m!=="string"))throw new Error(key+" must be an array of strings.")}
+  for(const key of ["configRegex","envRegex","markerRegex","vscodeRegex","vscodeExecRegex","vscodeAuxRegex","artifactRegex","fontRegex","scriptRegex","packageRegex","lifecycleRegex","gitignoreRegex"]){db[key]=value[key]===undefined?DEFAULT_IOC[key]:value[key];if(typeof db[key]!=="string"||!db[key].trim())throw new Error(key+" must be a nonempty regex.");try{new RegExp(db[key])}catch(e){throw new Error("Invalid regex in "+key+": "+e.message)}}
+  for(const key of ["markers","npmPackages","knownHashes"]){db[key]=value[key]===undefined?[...DEFAULT_IOC[key]]:value[key];if(!Array.isArray(db[key])||db[key].some(m=>typeof m!=="string"))throw new Error(key+" must be an array of strings.")}
   for(const key of ["sizeThreshold","lineThreshold","fontMaxBytes"]){db[key]=value[key]===undefined?DEFAULT_IOC[key]:Number(value[key]);if(!Number.isSafeInteger(db[key])||db[key]<1)throw new Error(key+" must be a positive whole number.")}
   return db;
 }

@@ -15,7 +15,7 @@ CONFIG_GLOB='(postcss|next|vite|tailwind|eslint|astro|vue|webpack|jest|svelte|nu
 DROP_KEY="AUTH_API_""KEY"                 # split so this file itself stays clean of the marker
 EV_MARK="eval""(proxyInfo)"               # ditto
 MARKERS=(
-  "A9-4091" "A4-1928" "'4-1928'" "RS260605"
+  "A9-4091" "A4-1928" "'4-1928'" "RS260605" "9-4091" "9-3333" "9-1591-1" "9-6516-2" "A8-1817-3" "A9-3947-2" "temp_interactive_push"
   "$DROP_KEY" "auth-con-firm" "aHR0cHM6Ly9hdXRoLWNvbi1maXJt" "$EV_MARK"
   "a322e5f3d311d3080e6f0121063e9adc2490ef1a"
   "TMfKQEd7TJJa5xNZJZ2Lep838vrzrs7mAP" "TXfxHUet9pJVU1BgVkBAbrES4YUc1nGzcG"

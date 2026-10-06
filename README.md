@@ -40,7 +40,9 @@ See [`cli/README.md`](cli/README.md).
   presentation running `curl | bash` or `node <disguised file>`; `settings.json` presets; `launch.json` abuse;
   disguised payloads in `.vscode` (judged by content, not name)
 - **Fake fonts** — JavaScript inside `.woff2`/`.ttf` under `public/`, `assets/`, `fonts/`
-- **Artifacts** — the propagation script `temp_auto_push.bat` / `config.bat`
+- **Artifacts** — the propagation scripts `temp_auto_push.bat` / `temp_interactive_push.bat` / `config.bat`, and `.gitignore` lines added to hide them
+- **Known payloads** — exact SHA-256 matches of payload files from the 2026-10 B2 wave
+- **Variants covered** — original `rmcej%otb%`/`_$_1e42`, rotated `Cot%3t=shtP`/`MDy`, variant A (`global.i='A8-…'`, also in `migrations/*.js`), and B2 (`global['!']='9-6516-2'` with a javascript-obfuscator `_0x…` string table, `jest.config.js`, `fa-solid-900.woff2` in decoy Font Awesome folders, forged commits from +0200)
 - **npm vector** — known malicious packages and install-time lifecycle scripts in `package.json`
 - **Git tells** — history pickaxe for known markers; commits authored as you but committed from a foreign
   timezone (the amend-and-force-push fingerprint)
