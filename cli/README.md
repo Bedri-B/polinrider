@@ -46,7 +46,8 @@ Exit code **2** means something is infected (handy in scripts/CI).
 
 ## What it detects
 Build-config injection in any `*.config.js/ts`, `.*rc.js` or gulp/grunt/knex file (whitespace-padded blob or
-`atob` + fetch loader), the same loader spliced into entry points (`src/main.ts`, `index.ts`, `App.js`, `server.js`), `.env` droppers,
+`atob` + fetch loader), the same loader spliced into entry points (`src/main.ts`, `index.ts`, `App.js`, `server.js`),
+the root `api.js` dropper chained into `package.json` scripts (`node api.js && expo start`), `.env` droppers,
 `.vscode/tasks.json` autorun with hidden presentation, `settings.json` automatic-task presets,
 `launch.json` abuse, disguised payloads in `.vscode`, JavaScript hidden in fake fonts (`.woff2`/`.ttf`/`.otf`/`.eot`/`.llf`, judged by magic bytes + known SHA-256),
 `temp_auto_push.bat` / `config.bat`, known malicious npm packages and install-time lifecycle scripts,

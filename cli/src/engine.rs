@@ -60,6 +60,8 @@ impl Default for Ioc {
             artifact_regex: r"(^|/)(temp_auto_push\.bat|temp_interactive_push\.bat|config\.bat)$".into(),
             gitignore_regex: r"(^|/)\.gitignore$".into(),
             known_hashes: [
+                "ce20d9cfa23ac3a25ac41fa9d9da5935102996249934233df5d85c74551a647a", // root api.js dropper (Sales-pro, Sep/Oct 2026, hex-array obfuscator)
+                "8b8ee2a11453ca691a51ccaa18de0c1f94d5237fddd7aaf425aceb550290d38c", // babel.config.js with global['!']='8-9153-15' blob (Sales-pro)
                 "3b572a613f5013a64e1877dfed3873f2bcbd52e5259b199d41e02c33840abbcb", // fa-solid-300.llf (cashier/backend kit, Sep 2026)
                 "7922bce938af965008c1481f5f47d6c85b09217e10147fa35979e8aa4585ff8d", // B2 jest.config.js
                 "586e1904c8e8d69ab58e9e1c77fc5e7a044d910bb57b3f3b8d587368b4f84d15", // B2 fake fa-solid-900.woff2
@@ -69,7 +71,7 @@ impl Default for Ioc {
             ].iter().map(|s| s.to_string()).collect(),
             font_regex: r"(^|/)(public|static|assets|webfonts|fonts)/.*\.(woff2?|ttf|otf|eot|llf|fnt|bin|dat)$".into(),
             font_max_bytes: 524_288,
-            script_regex: r"^(App|app|index)\.js$|(^|/)migrations/[^/]+\.(js|cjs|mjs|ts)$".into(),
+            script_regex: r"^[A-Za-z0-9_.-]+\.(js|cjs|mjs)$|(^|/)migrations/[^/]+\.(js|cjs|mjs|ts)$".into(),
             entry_regex: default_entry_regex(),
             entry_max_bytes: default_entry_max_bytes(),
             package_regex: r"(^|/)package\.json$".into(),
@@ -78,7 +80,7 @@ impl Default for Ioc {
                 "tailwindcss-typography-style", "tailwindcss-style-modify", "tailwindcss-animate-style", "jsonwebauth",
             ].iter().map(|s| s.to_string()).collect(),
             lifecycle_regex: r"\bnode\s+-e\b|curl\b|wget\b|powershell|Invoke-Expression|\biex\b|bash\s+-c|\|\s*(ba)?sh\b|base64\s+(-d|--decode)|certutil|bitsadmin".into(),
-            marker_regex: r#"A[0-9]-[0-9]{4}|C2[0-9]{5}A|RS2[0-9]{5}|_\$_[0-9a-f]{4,}|createRequire|global\['|function MDy\(|rmcej%otb%|Cot%3t=shtP|8-st[0-9]+|_0x[0-9a-f]{4,}|global\.i\s*=\s*['"][A-Z]?[0-9]{1,2}(-[0-9]{3,4})?['"]"#.into(),
+            marker_regex: r#"A[0-9]-[0-9]{4}|C2[0-9]{5}A|RS2[0-9]{5}|_\$_[0-9a-f]{4,}|createRequire|global\['|function MDy\(|rmcej%otb%|Cot%3t=shtP|8-st[0-9]+|_0x[0-9a-f]{4,}|global\.i\s*=\s*['"][A-Z]?[0-9]{1,2}(-[0-9]{3,4})?['"]|=\s*\[\s*'[0-9a-f]{16,}'\s*,\s*'[0-9a-f]{16,}'"#.into(),
             markers: default_markers(),
             size_threshold: 8000,
             line_threshold: 400,
@@ -90,7 +92,7 @@ impl Default for Ioc {
 fn default_markers() -> Vec<String> {
     let mut m: Vec<String> = [
         // loader strings
-        "A9-4091", "A4-1928", "RS260605", "9-4091", "9-3333", "9-1591-1", "9-6516-2", "A8-1817-3", "A9-3947-2",
+        "A9-4091", "A4-1928", "RS260605", "9-4091", "9-3333", "9-1591-1", "9-6516-2", "8-9153-15", "A8-1817-3", "A9-3947-2",
         DROP_KEY, "auth-con-firm", B64SIG, EVAL_MARK, "rmcej%otb%", "Cot%3t=shtP",
         "_$_1e42", "LAST_COMMIT_DATE", "temp_auto_push", "temp_interactive_push", "Sec-V",
         // XOR keys and template fingerprint
@@ -133,7 +135,7 @@ pub fn fmt_b(n: u64) -> String {
 pub struct Engine {
     pub ioc: Ioc,
     cfg: Regex, env: Regex, vsc: Regex, vsc_exec: Regex, aux: Regex, art: Regex, font: Regex,
-    script: Regex, entry: Regex, pkg: Regex, lifecycle: Regex, marker: Regex, gitignore: Regex, gi_hide: Regex,
+    script: Regex, entry: Regex, pkg: Regex, lifecycle: Regex, marker: Regex, gitignore: Regex, gi_hide: Regex, chain: Regex,
     decoy_tasks: Regex, hide_term: Regex,
     run_on: Regex, hidden: Regex, padded: Regex, js_font: Regex, hexrun: Regex, code_aux: Regex,
     iife_start: Regex, iife_end: Regex, ws80: Regex, import_dotenv: Regex, cr_import: Regex, cr_const: Regex,
@@ -165,6 +167,7 @@ impl Engine {
             lifecycle: ci(&ioc.lifecycle_regex)?, marker: cs(&ioc.marker_regex)?,
             gitignore: ci(&ioc.gitignore_regex)?,
             gi_hide: ci(r"temp_auto_push|temp_interactive_push|^\s*config\.bat\s*$")?,
+            chain: cs(r"(^|&&|;|\|\|)\s*node\s+(\./)?([A-Za-z0-9_.-]+\.(?:js|cjs|mjs))\s*&&")?,
             decoy_tasks: ci(r#""tasks"\s*:\s*\{[\s\S]{0,600}?"runOn"\s*:\s*"folderOpen""#)?,
             hide_term: ci(r#""terminal\.integrated\.hideOnStartup"\s*:\s*"always""#)?,
             run_on: ci(r#""runOn"\s*:\s*"folderOpen""#)?,
@@ -321,13 +324,18 @@ impl Engine {
                 for k in ["preinstall", "install", "postinstall", "prepare", "prepublish"] {
                     if let Some(Value::String(v)) = s.get(k) { if self.lifecycle.is_match(v) { h.push(format!("script {}", k)); } }
                 }
+                // "dev": "node api.js && expo start" — a root-level node file chained before the real command
+                for (k, v) in s.iter() {
+                    if let Value::String(v) = v { if let Some(c) = self.chain.captures(v) { if !self.is_cfg(&c[3]) { h.push(format!("chain {} runs root {}", k, &c[3])); } } }
+                }
             }
         }
         let m = Self::strip_marker(self.signal(content, content.len() as u64, false));
         if !m.is_empty() { h.push(m); }
         if h.is_empty() { return String::new(); }
         let kind = if h.iter().any(|x| x.starts_with("pkg ")) { "NPM-PACKAGE: " }
-            else if h.iter().any(|x| x.starts_with("script ")) { "LIFECYCLE-SCRIPT: " } else { "MARKER: " };
+            else if h.iter().any(|x| x.starts_with("script ")) { "LIFECYCLE-SCRIPT: " }
+            else if h.iter().any(|x| x.starts_with("chain ")) { "SCRIPT-CHAIN: " } else { "MARKER: " };
         format!("{}{}", kind, h.join(", "))
     }
 
@@ -428,9 +436,23 @@ impl Engine {
         Plan::Rewrite { content: out, method: "strip settings.json".into() }
     }
 
-    fn strip_package(&self, cur: &str) -> Plan {
+    /// `flagged_root`: root-level script files already flagged in this target (so a chained `node api.js &&` can be dropped safely).
+    fn strip_package(&self, cur: &str, flagged_root: &[String]) -> Plan {
         let mut j: Value = match serde_json::from_str(cur) { Ok(v) => v, Err(_) => return Plan::Review("manual review".into()) };
         let mut changed = false;
+        if let Some(Value::Object(s)) = j.get_mut("scripts") {
+            let keys: Vec<String> = s.keys().cloned().collect();
+            for k in keys {
+                let nv = match s.get(&k) {
+                    Some(Value::String(v)) => match self.chain.captures(v) {
+                        Some(c) if flagged_root.iter().any(|f| f == &c[3]) => Some(self.chain.replace(v, "$1 ").trim().to_string()),
+                        _ => None,
+                    },
+                    _ => None,
+                };
+                if let Some(nv) = nv { s.insert(k, Value::String(nv)); changed = true; }
+            }
+        }
         for k in ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"] {
             if let Some(Value::Object(d)) = j.get_mut(k) {
                 for n in &self.ioc.npm_packages { if d.shift_remove(n).is_some() { changed = true; } }
@@ -452,6 +474,12 @@ impl Engine {
 
     /// Decide how to clean one file. `history` yields (sha, bytes) of older versions, newest first.
     pub fn plan(&self, path: &str, sig: &str, cur: &str, history: Option<&dyn Fn() -> Vec<(String, Vec<u8>)>>) -> Plan {
+        self.plan_with(path, sig, cur, history, &[])
+    }
+
+    /// Like `plan`, with the list of root-level script files already flagged in the same target
+    /// (lets `package.json` drop a chained `node api.js &&` only when api.js itself is infected).
+    pub fn plan_with(&self, path: &str, sig: &str, cur: &str, history: Option<&dyn Fn() -> Vec<(String, Vec<u8>)>>, flagged_root: &[String]) -> Plan {
         if self.is_gitignore(path) {
             let kept: Vec<&str> = cur.split('\n').filter(|l| !self.gi_hide.is_match(l)).collect();
             let kept = kept.join("\n");
@@ -473,7 +501,7 @@ impl Engine {
             }
             return Plan::Review("manual review".into());
         }
-        if self.is_pkg(path) { return self.strip_package(cur); }
+        if self.is_pkg(path) { return self.strip_package(cur, flagged_root); }
         if self.is_env(path) {
             let kept: Vec<&str> = cur.split('\n').filter(|l| !l.contains(DROP_KEY)).collect();
             return Plan::Rewrite { content: kept.join("\n"), method: "strip dropper".into() };
@@ -481,7 +509,9 @@ impl Engine {
         if self.is_entry(path) || (self.is_script(path) && !self.is_cfg(path)) {
             // entry files & scripts: cut the loader line/block + orphaned imports; never restore old application code from history
             let out = self.reconstruct_with(cur, false);
-            return if out == cur { Plan::Review("manual review".into()) } else { Plan::Rewrite { content: out, method: "reconstruct".into() } };
+            return if out == cur { Plan::Review("manual review".into()) }
+                   else if out.trim().is_empty() { Plan::Delete("delete file (nothing legitimate left)".into()) }
+                   else { Plan::Rewrite { content: out, method: "reconstruct".into() } };
         }
         if let Some(h) = history {
             for (sha, bytes) in h() {
