@@ -56,9 +56,14 @@ chmod +x polinrider-macos-arm64 && xattr -d com.apple.quarantine polinrider-maco
 ## How fixes work
 Dry-run by default. Config files are restored from the newest clean commit in history; if none exists the
 payload is cut out (both variants). `.env` loses the dropper line; `package.json` loses malicious entries;
-weaponized `tasks.json`, fake fonts and artifacts are deleted; `settings.json`/`launch.json` and root scripts
-are left for manual review. A file is **never** written while it still matches the detectors, or if cleaning
-would remove its export.
+weaponized `tasks.json`, fake fonts and artifacts are deleted; `settings.json` loses only the worm's keys
+(`task.allowAutomaticTasks`, the decoy `tasks` block, `terminal.integrated.hideOnStartup`, disabled workspace
+trust) and is deleted when nothing legitimate is left; entry files and root scripts have the loader line or
+block cut out; `launch.json` is left for manual review. A file is **never** written while it still matches the
+detectors, or if cleaning would remove its export.
+
+Owners or repositories listed under **Exclude** on the scan page are never scanned and never fixed, even when
+they are part of a ticked scope. The list is remembered in the browser.
 
 ## After cleaning — do this too
 The worm steals tokens. Rotate GitHub PATs and revoke OAuth grants (including the GitHub CLI's), rotate

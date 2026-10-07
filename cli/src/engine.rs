@@ -377,10 +377,13 @@ impl Engine {
     /// Rebuild a clean config when no clean historical version exists. Handles both variants:
     /// whitespace-padded blob (drop 80+-space runs / payload-length lines / injected createRequire prelude)
     /// and the auth-con-firm loader (cut the statement block containing an IOC marker + its orphaned imports).
-    pub fn reconstruct(&self, c: &str) -> String {
+    pub fn reconstruct(&self, c: &str) -> String { self.reconstruct_with(c, true) }
+
+    /// `strict` (configs): every over-long line goes. Lenient (scripts/entry files): only over-long lines that carry a marker.
+    pub fn reconstruct_with(&self, c: &str, strict: bool) -> String {
         let mut lines: Vec<String> = c.split('\n')
             .map(|l| self.ws80.replace(l, "").to_string())
-            .filter(|l| l.chars().count() <= self.ioc.line_threshold)
+            .filter(|l| l.chars().count() <= self.ioc.line_threshold || (!strict && !self.has_marker(l)))
             .collect();
         let mut i = 0usize;
         while i < lines.len() {
@@ -405,19 +408,39 @@ impl Engine {
         self.blank3.replace_all(&out, "\n\n").to_string()
     }
 
+    /// `.vscode/settings.json`: drop only the worm's keys, keep the developer's own settings;
+    /// delete when nothing legitimate is left.
+    fn strip_settings(&self, cur: &str) -> Plan {
+        let mut j: Value = match serde_json::from_str(cur) { Ok(v) => v, Err(_) => return Plan::Review("manual review (settings.json has comments)".into()) };
+        let obj = match j.as_object_mut() { Some(o) => o, None => return Plan::Review("manual review".into()) };
+        let mut changed = false;
+        let auto_on = obj.get("task.allowAutomaticTasks").map(|v| matches!(v, Value::Bool(true))
+            || v.as_str().map(|s| s.eq_ignore_ascii_case("on") || s.eq_ignore_ascii_case("true")).unwrap_or(false)).unwrap_or(false);
+        if auto_on { obj.shift_remove("task.allowAutomaticTasks"); changed = true; }
+        if obj.get("security.workspace.trust.enabled") == Some(&Value::Bool(false)) { obj.shift_remove("security.workspace.trust.enabled"); changed = true; }
+        if obj.get("terminal.integrated.hideOnStartup").and_then(|v| v.as_str()) == Some("always") { obj.shift_remove("terminal.integrated.hideOnStartup"); changed = true; }
+        let decoy_tasks = obj.get("tasks").map(|t| t.to_string().contains("\"runOn\":\"folderOpen\"")).unwrap_or(false);
+        if decoy_tasks { obj.shift_remove("tasks"); changed = true; }
+        if !changed { return Plan::Review("manual review".into()); }
+        if obj.is_empty() { return Plan::Delete("delete settings.json (nothing legitimate left)".into()); }
+        let mut out = serde_json::to_string_pretty(&j).unwrap_or_else(|_| cur.to_string());
+        if cur.ends_with('\n') { out.push('\n'); }
+        Plan::Rewrite { content: out, method: "strip settings.json".into() }
+    }
+
     fn strip_package(&self, cur: &str) -> Plan {
         let mut j: Value = match serde_json::from_str(cur) { Ok(v) => v, Err(_) => return Plan::Review("manual review".into()) };
         let mut changed = false;
         for k in ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"] {
             if let Some(Value::Object(d)) = j.get_mut(k) {
-                for n in &self.ioc.npm_packages { if d.remove(n).is_some() { changed = true; } }
+                for n in &self.ioc.npm_packages { if d.shift_remove(n).is_some() { changed = true; } }
             }
         }
         if let Some(Value::Object(s)) = j.get_mut("scripts") {
             let keys: Vec<String> = s.keys().cloned().collect();
             for k in keys {
                 if ["preinstall", "install", "postinstall", "prepare", "prepublish"].contains(&k.as_str()) {
-                    if let Some(Value::String(v)) = s.get(&k) { if self.lifecycle.is_match(v) { s.remove(&k); changed = true; } }
+                    if let Some(Value::String(v)) = s.get(&k) { if self.lifecycle.is_match(v) { s.shift_remove(&k); changed = true; } }
                 }
             }
         }
@@ -440,20 +463,26 @@ impl Engine {
         }
         if self.is_vscode(path) {
             let base = path.rsplit('/').next().unwrap_or(path).to_lowercase();
-            return if base == "tasks.json" && (sig.starts_with("VSCODE-AUTORUN") || sig.starts_with("KNOWN-PAYLOAD")) { Plan::Delete("delete tasks.json".into()) }
-                   else { Plan::Review("manual review".into()) };
+            if base == "tasks.json" {
+                return if sig.starts_with("VSCODE-AUTORUN") || sig.starts_with("KNOWN-PAYLOAD") { Plan::Delete("delete tasks.json".into()) }
+                       else { Plan::Review("manual review".into()) };
+            }
+            if base == "settings.json" {
+                if sig.starts_with("KNOWN-PAYLOAD") { return Plan::Delete("delete settings.json".into()); }
+                return self.strip_settings(cur);
+            }
+            return Plan::Review("manual review".into());
         }
         if self.is_pkg(path) { return self.strip_package(cur); }
         if self.is_env(path) {
             let kept: Vec<&str> = cur.split('\n').filter(|l| !l.contains(DROP_KEY)).collect();
             return Plan::Rewrite { content: kept.join("\n"), method: "strip dropper".into() };
         }
-        if self.is_entry(path) {
-            // entry files: cut the loader block + orphaned imports; never restore old application code from history
-            let out = self.reconstruct(cur);
+        if self.is_entry(path) || (self.is_script(path) && !self.is_cfg(path)) {
+            // entry files & scripts: cut the loader line/block + orphaned imports; never restore old application code from history
+            let out = self.reconstruct_with(cur, false);
             return if out == cur { Plan::Review("manual review".into()) } else { Plan::Rewrite { content: out, method: "reconstruct".into() } };
         }
-        if self.is_script(path) && !self.is_cfg(path) { return Plan::Review("manual review".into()); }
         if let Some(h) = history {
             for (sha, bytes) in h() {
                 let t = String::from_utf8_lossy(&bytes).to_string();
@@ -473,7 +502,8 @@ impl Engine {
             Plan::Delete(m) => Outcome { method: m, result: format!("delete ({})", fmt_b(cur_size)), action: Action::Delete },
             Plan::Review(m) => Outcome { method: m, result: "Review manually — not auto-fixed".into(), action: Action::None },
             Plan::Rewrite { content, method } => {
-                let still_bad = !self.signal(&content, content.len() as u64, self.is_cfg(path)).is_empty();
+                let still_bad = !self.signal(&content, content.len() as u64, self.is_cfg(path)).is_empty()
+                    || (self.is_vscode(path) && !self.vscode_signal(path, &content).is_empty());
                 if content == cur {
                     return if still_bad {
                         Outcome { method: "manual review".into(), result: "Could not auto-clean — review manually".into(), action: Action::None }

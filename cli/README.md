@@ -55,8 +55,10 @@ and — with git — history pickaxe hits and foreign-timezone commits.
 ## How fixes work
 Dry run by default. Configs are restored from the newest clean commit in history; if none exists the
 payload is cut out (both variants). `.env` loses the dropper line; `package.json` loses malicious deps and
-lifecycle scripts; weaponized `tasks.json`, fake fonts and artifacts are deleted; `settings.json`,
-`launch.json` and root scripts are left for manual review. A file is **never** written if it still matches
+lifecycle scripts; weaponized `tasks.json`, fake fonts and artifacts are deleted; `settings.json` loses only the
+worm's keys (`task.allowAutomaticTasks`, decoy `tasks` block, `terminal.integrated.hideOnStartup`, disabled
+workspace trust) and is deleted when nothing legitimate is left; entry files and root scripts have the loader
+line or block cut out; `launch.json` is left for manual review. A file is **never** written if it still matches
 the detectors or if cleaning would remove its export.
 
 ## Build
