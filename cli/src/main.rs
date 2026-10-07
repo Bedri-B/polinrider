@@ -106,6 +106,7 @@ impl Paint {
             else if sig.starts_with("KNOWN-PAYLOAD") { ("31", "known payload") }
             else if sig.starts_with("VSCODE") { ("31", "vscode autorun") }
             else if sig.starts_with("ARTIFACT") { ("31", "artifact") }
+            else if sig.starts_with("SCRIPT-CHAIN") { ("31", "script chain") }
             else if sig.starts_with("FAKE-FONT") { ("31", "fake font") }
             else if sig.starts_with("HISTORY") { ("35", "history") }
             else if sig.starts_with("FOREIGN-TZ") { ("35", "foreign tz") }
@@ -225,7 +226,11 @@ pub fn fix_targets(eng: &Engine, targets: &[PathBuf], apply: bool, commit: bool,
             let cur = String::from_utf8_lossy(&bytes).to_string();
             let hist_fn = || git::file_history(root, &f.path);
             let hist: Option<&dyn Fn() -> Vec<(String, Vec<u8>)>> = if is_repo && eng.is_cfg(&f.path) { Some(&hist_fn) } else { None };
-            let plan = eng.plan(&f.path, &f.signal, &cur, hist);
+            // root-level scripts flagged in this same target: lets package.json drop a chained "node api.js &&" safely
+            let flagged_root: Vec<String> = findings.iter()
+                .filter(|g| g.target == f.target && !g.signal.starts_with("WARN") && !g.path.contains('/') && eng.is_script(&g.path) && !eng.is_cfg(&g.path))
+                .map(|g| g.path.clone()).collect();
+            let plan = eng.plan_with(&f.path, &f.signal, &cur, hist, &flagged_root);
             let outcome = eng.evaluate(&f.path, plan, &cur, bytes.len() as u64);
             let (mut result, mut did, mut review) = (outcome.result.clone(), false, false);
             match &outcome.action {
