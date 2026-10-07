@@ -167,7 +167,7 @@ main{max-width:1512px;margin:auto;padding:33px 34px 25px}.page-heading{display:f
 
     <section class="view" id="v-help" aria-label="Help and guidance"><div class="help-grid">
       <div class="card help-card"><h2>Four steps to clean code</h2><ol><li><strong>Connect.</strong> Add a GitHub token with access to your repositories.</li><li><strong>Scan.</strong> Choose repositories and branches. Progress saves per repository.</li><li><strong>Review.</strong> Inspect signals and select the files you want to fix.</li><li><strong>Fix.</strong> Preview with a dry run, then turn it off to commit the changes.</li></ol></div>
-      <div class="card help-card"><h2>What the scanner detects</h2><p><b>Config injection</b> — PolinRider / auth-con-firm hides a remote-code loader in <code>postcss</code>, <code>next</code>, <code>vite</code>, <code>tailwind</code>, <code>eslint</code> and similar configs: a ~30 KB obfuscated blob after whitespace, or an <code>atob</code>+fetch loader paired with a committed <code>.env</code>.</p><p><b>VS Code autorun (TaskJacker)</b> — a <code>.vscode/tasks.json</code> with <code>"runOn":"folderOpen"</code> and a hidden presentation that runs <code>curl | bash</code> or <code>node</code> on a disguised file the moment the folder opens; <code>settings.json</code> may pre-enable <code>task.allowAutomaticTasks</code>.</p><p><b>Variants</b> — the original <code>rmcej%otb%</code>/<code>_$_1e42</code> loader, the rotated <code>Cot%3t=shtP</code>/<code>MDy</code> build, variant A (<code>global.i='A8-…'</code>, also injected into <code>migrations/*.js</code>), and the 2026-10 <b>B2</b> wave (<code>global['!']='9-6516-2'</code> with a javascript-obfuscator <code>_0x…</code> string table, forged commits from a +0200 timezone, <code>jest.config.js</code>, <code>fa-solid-900.woff2</code> inside decoy Font Awesome folders). Exact known payload files are also matched by SHA-256.</p><p><b>Fake fonts</b> — JavaScript stored in <code>.woff2</code>/<code>.ttf</code>/<code>.otf</code>/<code>.eot</code> or invented extensions such as <code>.llf</code> under <code>public/</code> or <code>assets/</code> (real binary fonts pass a magic-byte check). <b>Artifacts</b> — the propagation script <code>temp_auto_push.bat</code> (a near-certain sign of past compromise). <b>npm vector</b> — known malicious dependencies and install-time lifecycle scripts in <code>package.json</code>. Signals are indicators for review; large legitimate configs can also be flagged.</p></div>
+      <div class="card help-card"><h2>What the scanner detects</h2><p><b>Config injection</b> — PolinRider / auth-con-firm hides a remote-code loader in <code>postcss</code>, <code>next</code>, <code>vite</code>, <code>tailwind</code>, <code>eslint</code> and similar configs: a ~30 KB obfuscated blob after whitespace, or an <code>atob</code>+fetch loader paired with a committed <code>.env</code>.</p><p><b>VS Code autorun (TaskJacker)</b> — a <code>.vscode/tasks.json</code> with <code>"runOn":"folderOpen"</code> and a hidden presentation that runs <code>curl | bash</code> or <code>node</code> on a disguised file the moment the folder opens; <code>settings.json</code> may pre-enable <code>task.allowAutomaticTasks</code>.</p><p><b>Variants</b> — the original <code>rmcej%otb%</code>/<code>_$_1e42</code> loader, the rotated <code>Cot%3t=shtP</code>/<code>MDy</code> build, variant A (<code>global.i='A8-…'</code>, also injected into <code>migrations/*.js</code>), and the 2026-10 <b>B2</b> wave (<code>global['!']='9-6516-2'</code> with a javascript-obfuscator <code>_0x…</code> string table, forged commits from a +0200 timezone, <code>jest.config.js</code>, <code>fa-solid-900.woff2</code> inside decoy Font Awesome folders). Exact known payload files are also matched by SHA-256.</p><p><b>Any build config</b> — every <code>*.config.js/ts</code> (vite, vitest, jest, next, postcss, playwright, babel …), <code>.*rc.js</code> and gulp/grunt/knex files are inspected, not just a fixed list. <b>Entry points</b> — the same loader spliced into <code>src/main.ts</code>, <code>index.ts</code>, <code>App.js</code> or <code>server.js</code> (root or under <code>src/</code>); small entry files are always content-scanned and cleaned by cutting the loader block, never by restoring old application code.</p><p><b>Fake fonts</b> — JavaScript stored in <code>.woff2</code>/<code>.ttf</code>/<code>.otf</code>/<code>.eot</code> or invented extensions such as <code>.llf</code> under <code>public/</code> or <code>assets/</code> (real binary fonts pass a magic-byte check). <b>Artifacts</b> — the propagation script <code>temp_auto_push.bat</code> (a near-certain sign of past compromise). <b>npm vector</b> — known malicious dependencies and install-time lifecycle scripts in <code>package.json</code>. Signals are indicators for review; large legitimate configs can also be flagged.</p></div>
       <div class="card help-card wide"><h2>A few things to know</h2><details open><summary>How are fixes made?</summary><p>The tool reads a file through the GitHub Contents API. For config files, it searches up to 30 historical commits for a clean version; otherwise it reconstructs the file by stripping suspicious long lines. For .env files, it removes the known dropper line. For package.json, it removes known malicious dependencies and install-time lifecycle scripts. Weaponized <code>.vscode/tasks.json</code>, fake font payloads and <code>temp_auto_push.bat</code> are <b>deleted</b> (there is no clean version to restore). Flagged <code>settings.json</code>/<code>launch.json</code> and root scripts are left for manual review. A live fix writes a normal commit to the selected branch. Review the restore method carefully: a historical version may omit recent legitimate changes.</p></details><details><summary>Can I stop and resume?</summary><p>Yes. Completed repositories are journaled in local storage. Stop leaves unfinished repositories pending, so Resume checks them again. Open this same file in the same browser to return to your saved scan. Keep the file at the same location; file-URL storage behavior can differ between browsers.</p></details><details><summary>Where does my data go?</summary><p>Scanning and fixing communicate directly with api.github.com. Repository code is read as text and never executed. Your token stays in memory unless you choose to remember it. The optional “Load from URL” action fetches only the IOC URL you provide, without your GitHub token.</p></details><details><summary>What access does my token need?</summary><p>Use a classic token with the repo scope, or a fine-grained token covering your target repositories with Contents read permission for scanning and read/write for fixing. Organization approval, SSO, branch protection, or repository rules may restrict access or commits.</p></details><details><summary>What if GitHub limits my requests?</summary><p>The API meter tracks the remaining request budget. The tool waits and retries rate-limited requests automatically. Lower concurrency to reduce simultaneous requests. Unverified results indicate incomplete checks and should be scanned again.</p></details></div>
     </div></section>
     <footer class="footer"><span><svg aria-hidden="true"><use href="#i-shield"/></svg>PolinRider · Repository security, in your hands.</span><span>No installation. No telemetry. Just your browser.</span></footer>
@@ -181,7 +181,7 @@ main{max-width:1512px;margin:auto;padding:33px 34px 25px}.page-heading{display:f
 const DROP_KEY="AUTH_API"+"_KEY", EVAL_TOK="ev"+"al", B64SIG="aHR0cHM6Ly9hdXRoLWNvbi1maXJt";
 const DEFAULT_IOC={
   // build-config injection (whitespace-padded blob / auth-con-firm loader)
-  configRegex:"(postcss|next|vite|tailwind|eslint|astro|vue|webpack|jest|svelte|nuxt|rollup|remix|drizzle|gridsome)\\.config\\.(js|cjs|mjs|ts)$",
+  configRegex:"(^|/)[A-Za-z0-9_.-]*\\.(config|conf)\\.(js|cjs|mjs|ts|mts|cts)$|(^|/)\\.[a-z-]+rc\\.(js|cjs|mjs)$|(^|/)(gulpfile|gruntfile|knexfile)\\.(js|cjs|mjs|ts)$",
   envRegex:"(^|/)\\.env($|\\.)",
   // TaskJacker: VS Code autorun dropper (.vscode/tasks.json "runOn":"folderOpen" + hidden presentation)
   vscodeRegex:"(^|/)\\.vscode/(tasks|settings|launch)\\.json$",
@@ -200,6 +200,9 @@ const DEFAULT_IOC={
   fontMaxBytes:524288,
   // root scripts the campaign also injects (checked only when unusually large)
   scriptRegex:"^(App|app|index)\\.js$|(^|/)migrations/[^/]+\\.(js|cjs|mjs|ts)$",
+  // entry points the auth-con-firm loader is spliced into (src/main.ts, index.ts …): always content-scanned when small
+  entryRegex:"^(main|index|app|server|App)\\.(js|cjs|mjs|ts|mts|cts)$|(^|/)src/(main|index|app|server|App)\\.(js|cjs|mjs|ts|mts|cts)$",
+  entryMaxBytes:20000,
   // npm supply-chain vector: malicious deps + lifecycle scripts
   packageRegex:"(^|/)package\\.json$",
   npmPackages:["tailwindcss-style-animate","tailwind-mainanimation","tailwind-autoanimation","tailwind-animationbased","tailwindcss-typography-style","tailwindcss-style-modify","tailwindcss-animate-style","jsonwebauth"],
@@ -279,7 +282,7 @@ async function pool(items,n,fn,onEach){
 /* ---------- detection ---------- */
 function rx(re,s,flags="i"){try{return new RegExp(re,flags).test(s)}catch(e){return false}}
 const isCfg=(p,db=IOC)=>rx(db.configRegex,p), isEnv=(p,db=IOC)=>rx(db.envRegex,p), isVscode=(p,db=IOC)=>rx(db.vscodeRegex,p),
-      isArtifact=(p,db=IOC)=>rx(db.artifactRegex,p), isFont=(p,db=IOC)=>rx(db.fontRegex,p), isScript=(p,db=IOC)=>rx(db.scriptRegex,p), isPkg=(p,db=IOC)=>rx(db.packageRegex,p),
+      isArtifact=(p,db=IOC)=>rx(db.artifactRegex,p), isFont=(p,db=IOC)=>rx(db.fontRegex,p), isScript=(p,db=IOC)=>rx(db.scriptRegex,p), isEntry=(p,db=IOC)=>rx(db.entryRegex,p), isPkg=(p,db=IOC)=>rx(db.packageRegex,p),
       isVscodeAux=(p,db=IOC)=>rx(db.vscodeAuxRegex,p), isGitignore=(p,db=IOC)=>rx(db.gitignoreRegex,p);
 const longest=c=>c.split("\n").reduce((a,l)=>Math.max(a,l.length),0);
 // SHA-256 of a binary string (from atob) — used to match exact known payload files
@@ -359,13 +362,14 @@ async function scanRepo(full,allBranches,skipUnchanged,db=IOC){
     if(tree&&tree.truncated)out.push(warning(br,"(truncated tree)","GitHub returned a partial file tree; some files were not checked"));
     for(const nd of(tree&&tree.tree)||[]){
       if(STOP)return pending();
-      if(nd.type!=="blob")continue;const p=nd.path,cfg=isCfg(p,db),env=isEnv(p,db),vsc=isVscode(p,db),aux=isVscodeAux(p,db),art=isArtifact(p,db),font=isFont(p,db),scr=isScript(p,db),pkg=isPkg(p,db),gi=isGitignore(p,db);
-      if(!(cfg||env||vsc||aux||art||font||scr||pkg||gi))continue;
+      if(nd.type!=="blob")continue;const p=nd.path,cfg=isCfg(p,db),env=isEnv(p,db),vsc=isVscode(p,db),aux=isVscodeAux(p,db),art=isArtifact(p,db),font=isFont(p,db),scr=isScript(p,db),ent=isEntry(p,db)&&!cfg,pkg=isPkg(p,db),gi=isGitignore(p,db);
+      if(!(cfg||env||vsc||aux||art||font||scr||ent||pkg||gi))continue;
       const size=nd.size||0;let sig="";
       if(art)sig="ARTIFACT: propagation script (temp_auto_push)";
       else if(cfg&&size>db.sizeThreshold)sig="SIZE-ANOMALY("+fmtB(size)+")";
       else if(font&&size>db.fontMaxBytes)sig="";                 // real large fonts: skip download
-      else if(scr&&size<=db.sizeThreshold)sig="";                // root App.js/index.js only inspected when unusually large
+      else if(ent&&size>db.entryMaxBytes)sig="";                 // big entry files are bundles: skip download
+      else if(scr&&!ent&&size<=db.sizeThreshold)sig="";          // migrations / root scripts only inspected when unusually large
       else{
         let blob=seen.get(nd.sha);
         if(!blob){try{const b=await gh("repos/"+full+"/git/blobs/"+nd.sha);const raw=b.content?atob(b.content.replace(/\n/g,"")):"";blob={raw,content:font?raw:b64d(b.content||""),hash:(db.knownHashes&&db.knownHashes.length)?await sha256hex(raw):""}}catch(e){blob={error:"Unable to read file: "+(e.status||e.message)}}seen.set(nd.sha,blob)}
@@ -376,7 +380,7 @@ async function scanRepo(full,allBranches,skipUnchanged,db=IOC){
         else if(aux)sig=disguisedSignal(blob.content,db);
         else if(vsc)sig=vscodeSignal(p,blob.content,db);
         else if(pkg)sig=pkgSignal(blob.content,db);
-        else if(scr){const ln=longest(blob.content),m=signal(blob.content,size,false,db);sig=ln>db.lineThreshold?(m?m+", ":"MARKER: ")+"LONGLINE("+ln+")":m}
+        else if(scr||ent){const ln=longest(blob.content),m=signal(blob.content,size,false,db);sig=ln>db.lineThreshold?(m?m+", ":"MARKER: ")+"LONGLINE("+ln+")":m}
         else sig=signal(blob.content,size,cfg,db);
       }
       if(sig)out.push({repo:full,branch:br,path:p,size,signal:sig});
@@ -425,6 +429,7 @@ async function cleanFor(full,branch,path,cur,sig=""){
     }catch(e){return{action:"review",method:"manual review"}}
   }
   if(isEnv(path))return{content:cur.split("\n").filter(l=>!l.includes(DROP_KEY)).join("\n"),method:"strip dropper"};
+  if(isEntry(path)&&!isCfg(path)){const out=reconstruct(cur);return out===cur?{action:"review",method:"manual review"}:{content:out,method:"reconstruct"}}  // entry files: cut the loader, never restore old code from history
   if(isScript(path)&&!isCfg(path))return{action:"review",method:"manual review"};
   try{const cs=await gh("repos/"+full+"/commits?path="+encodeURIComponent(path)+"&sha="+encodeURIComponent(branch)+"&per_page=30");
     for(const c of cs){if(STOP)break;try{const f=await gh("repos/"+full+"/contents/"+encodeURIComponent(path)+"?ref="+c.sha);const t=f.content?b64d(f.content):"";const sz=f.size||t.length;if(sz<=IOC.sizeThreshold&&!signal(t,sz,true))return{content:t,method:"restore "+c.sha.slice(0,7)}}catch(e){}}}catch(e){}
@@ -674,9 +679,9 @@ function loadIoc(){$("#iocMarkers").value=IOC.markers.join("\n");$("#iocConfig")
 function validateIoc(value){
   if(!value||typeof value!=="object"||Array.isArray(value))throw new Error("Expected an IOC JSON object.");
   const db={};
-  for(const key of ["configRegex","envRegex","markerRegex","vscodeRegex","vscodeExecRegex","vscodeAuxRegex","artifactRegex","fontRegex","scriptRegex","packageRegex","lifecycleRegex","gitignoreRegex"]){db[key]=value[key]===undefined?DEFAULT_IOC[key]:value[key];if(typeof db[key]!=="string"||!db[key].trim())throw new Error(key+" must be a nonempty regex.");try{new RegExp(db[key])}catch(e){throw new Error("Invalid regex in "+key+": "+e.message)}}
+  for(const key of ["configRegex","envRegex","markerRegex","vscodeRegex","vscodeExecRegex","vscodeAuxRegex","artifactRegex","fontRegex","scriptRegex","entryRegex","packageRegex","lifecycleRegex","gitignoreRegex"]){db[key]=value[key]===undefined?DEFAULT_IOC[key]:value[key];if(typeof db[key]!=="string"||!db[key].trim())throw new Error(key+" must be a nonempty regex.");try{new RegExp(db[key])}catch(e){throw new Error("Invalid regex in "+key+": "+e.message)}}
   for(const key of ["markers","npmPackages","knownHashes"]){db[key]=value[key]===undefined?[...DEFAULT_IOC[key]]:value[key];if(!Array.isArray(db[key])||db[key].some(m=>typeof m!=="string"))throw new Error(key+" must be an array of strings.")}
-  for(const key of ["sizeThreshold","lineThreshold","fontMaxBytes"]){db[key]=value[key]===undefined?DEFAULT_IOC[key]:Number(value[key]);if(!Number.isSafeInteger(db[key])||db[key]<1)throw new Error(key+" must be a positive whole number.")}
+  for(const key of ["sizeThreshold","lineThreshold","fontMaxBytes","entryMaxBytes"]){db[key]=value[key]===undefined?DEFAULT_IOC[key]:Number(value[key]);if(!Number.isSafeInteger(db[key])||db[key]<1)throw new Error(key+" must be a positive whole number.")}
   return db;
 }
 function saveIoc(db,message){if(BUSY)return;IOC=validateIoc(db);LS.set("ioc",IOC);CACHE={};LS.set("cache",CACHE);loadIoc();$("#iocStatus").textContent=message+" Unchanged-repository cache cleared.";toast(message)}

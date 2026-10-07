@@ -39,6 +39,7 @@ chmod +x polinrider-macos-arm64 && xattr -d com.apple.quarantine polinrider-maco
 ```
 
 ## What it detects
+- **Any build config, and entry points** — every `*.config.js/ts` (vite, vitest, jest, next, postcss, playwright, babel …), `.*rc.js` and gulp/grunt/knex file is inspected, not a fixed list; the same `atob` + fetch loader is also found spliced into `src/main.ts`, `index.ts`, `App.js`, `server.js` (root or under `src/`), which are content-scanned when small and cleaned by cutting the loader block only
 - **Config injection** — a ~30 KB obfuscated blob hidden after ~280 spaces on the `export default` line,
   or an `atob(…)` + `node-fetch` + code-eval loader paired with a committed `.env`
 - **VS Code autorun (TaskJacker)** — `.vscode/tasks.json` with `"runOn":"folderOpen"` and a hidden
