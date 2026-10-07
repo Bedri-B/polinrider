@@ -31,6 +31,10 @@ pub struct Ioc {
     pub font_regex: String,
     pub font_max_bytes: u64,
     pub script_regex: String,
+    /// Entry points (src/main.ts, index.ts, App.js …) the auth-con-firm loader is spliced into.
+    pub entry_regex: String,
+    /// Entry files above this size are bundles and are not downloaded.
+    pub entry_max_bytes: u64,
     pub package_regex: String,
     pub npm_packages: Vec<String>,
     pub lifecycle_regex: String,
@@ -42,10 +46,13 @@ pub struct Ioc {
     pub foreign_tz: Vec<String>,
 }
 
+fn default_entry_regex() -> String { r"^(main|index|app|server|App)\.(js|cjs|mjs|ts|mts|cts)$|(^|/)src/(main|index|app|server|App)\.(js|cjs|mjs|ts|mts|cts)$".into() }
+fn default_entry_max_bytes() -> u64 { 20_000 }
+
 impl Default for Ioc {
     fn default() -> Self {
         Ioc {
-            config_regex: r"(postcss|next|vite|tailwind|eslint|astro|vue|webpack|jest|svelte|nuxt|rollup|remix|drizzle|gridsome)\.config\.(js|cjs|mjs|ts)$".into(),
+            config_regex: r"(^|/)[A-Za-z0-9_.-]*\.(config|conf)\.(js|cjs|mjs|ts|mts|cts)$|(^|/)\.[a-z-]+rc\.(js|cjs|mjs)$|(^|/)(gulpfile|gruntfile|knexfile)\.(js|cjs|mjs|ts)$".into(),
             env_regex: r"(^|/)\.env($|\.)".into(),
             vscode_regex: r"(^|/)\.vscode/(tasks|settings|launch)\.json$".into(),
             vscode_exec_regex: r"curl\b|wget\b|powershell|Invoke-|\biex\b|\bnode\b|\bbash\b|\bsh\b|\bcmd\b|\|\s*(ba)?sh\b|base64|atob\(|\.(woff2?|ttf|otf|eot|llf|fnt|dict|svg|png|jpe?g|css)\b|vercel\.app|onrender\.com|short\.gy".into(),
@@ -63,6 +70,8 @@ impl Default for Ioc {
             font_regex: r"(^|/)(public|static|assets|webfonts|fonts)/.*\.(woff2?|ttf|otf|eot|llf|fnt|bin|dat)$".into(),
             font_max_bytes: 524_288,
             script_regex: r"^(App|app|index)\.js$|(^|/)migrations/[^/]+\.(js|cjs|mjs|ts)$".into(),
+            entry_regex: default_entry_regex(),
+            entry_max_bytes: default_entry_max_bytes(),
             package_regex: r"(^|/)package\.json$".into(),
             npm_packages: [
                 "tailwindcss-style-animate", "tailwind-mainanimation", "tailwind-autoanimation", "tailwind-animationbased",
@@ -124,7 +133,7 @@ pub fn fmt_b(n: u64) -> String {
 pub struct Engine {
     pub ioc: Ioc,
     cfg: Regex, env: Regex, vsc: Regex, vsc_exec: Regex, aux: Regex, art: Regex, font: Regex,
-    script: Regex, pkg: Regex, lifecycle: Regex, marker: Regex, gitignore: Regex, gi_hide: Regex,
+    script: Regex, entry: Regex, pkg: Regex, lifecycle: Regex, marker: Regex, gitignore: Regex, gi_hide: Regex,
     decoy_tasks: Regex, hide_term: Regex,
     run_on: Regex, hidden: Regex, padded: Regex, js_font: Regex, hexrun: Regex, code_aux: Regex,
     iife_start: Regex, iife_end: Regex, ws80: Regex, import_dotenv: Regex, cr_import: Regex, cr_const: Regex,
@@ -152,7 +161,7 @@ impl Engine {
         Ok(Engine {
             cfg: ci(&ioc.config_regex)?, env: ci(&ioc.env_regex)?, vsc: ci(&ioc.vscode_regex)?,
             vsc_exec: ci(&ioc.vscode_exec_regex)?, aux: ci(&ioc.vscode_aux_regex)?, art: ci(&ioc.artifact_regex)?,
-            font: ci(&ioc.font_regex)?, script: ci(&ioc.script_regex)?, pkg: ci(&ioc.package_regex)?,
+            font: ci(&ioc.font_regex)?, script: ci(&ioc.script_regex)?, entry: ci(&ioc.entry_regex)?, pkg: ci(&ioc.package_regex)?,
             lifecycle: ci(&ioc.lifecycle_regex)?, marker: cs(&ioc.marker_regex)?,
             gitignore: ci(&ioc.gitignore_regex)?,
             gi_hide: ci(r"temp_auto_push|temp_interactive_push|^\s*config\.bat\s*$")?,
@@ -189,11 +198,13 @@ impl Engine {
     pub fn is_artifact(&self, p: &str) -> bool { self.art.is_match(p) }
     pub fn is_font(&self, p: &str) -> bool { self.font.is_match(p) }
     pub fn is_script(&self, p: &str) -> bool { self.script.is_match(p) }
+    /// Entry points (src/main.ts, index.ts, App.js …) the auth-con-firm loader is spliced into; content-scanned when small.
+    pub fn is_entry(&self, p: &str) -> bool { self.entry.is_match(p) && !self.is_cfg(p) }
     pub fn is_pkg(&self, p: &str) -> bool { self.pkg.is_match(p) }
     pub fn is_gitignore(&self, p: &str) -> bool { self.gitignore.is_match(p) }
     pub fn interesting(&self, p: &str) -> bool {
         self.is_cfg(p) || self.is_env(p) || self.is_vscode(p) || self.is_vscode_aux(p) || self.is_artifact(p)
-            || self.is_font(p) || self.is_script(p) || self.is_pkg(p) || self.is_gitignore(p)
+            || self.is_font(p) || self.is_script(p) || self.is_entry(p) || self.is_pkg(p) || self.is_gitignore(p)
     }
 
     /// `.gitignore` lines the worm adds so its propagation scripts never show up in `git status`.
@@ -339,7 +350,9 @@ impl Engine {
         let font = self.is_font(path);
         if font && size > self.ioc.font_max_bytes { return String::new(); }
         let scr = self.is_script(path);
-        if scr && !cfg && size <= self.ioc.size_threshold { return String::new(); }
+        let ent = self.is_entry(path);
+        if ent && size > self.ioc.entry_max_bytes { return String::new(); }            // big entry files are bundles
+        if scr && !ent && !cfg && size <= self.ioc.size_threshold { return String::new(); }
         let bytes = match read() { Some(b) => b, None => return "WARN: unable to read file".into() };
         if let Some(hex) = self.known_hash(&bytes) {
             let what = if font { "fake font" } else if self.is_vscode(path) { "vscode file" } else if cfg { "config" } else { "file" };
@@ -351,7 +364,7 @@ impl Engine {
         if self.is_vscode_aux(path) { return self.disguised_signal(&text); }
         if self.is_vscode(path) { return self.vscode_signal(path, &text); }
         if self.is_pkg(path) { return self.pkg_signal(&text); }
-        if scr && !cfg { return self.script_signal(&text, size); }
+        if (scr || ent) && !cfg { return self.script_signal(&text, size); }
         self.signal(&text, size, cfg)
     }
 
@@ -434,6 +447,11 @@ impl Engine {
         if self.is_env(path) {
             let kept: Vec<&str> = cur.split('\n').filter(|l| !l.contains(DROP_KEY)).collect();
             return Plan::Rewrite { content: kept.join("\n"), method: "strip dropper".into() };
+        }
+        if self.is_entry(path) {
+            // entry files: cut the loader block + orphaned imports; never restore old application code from history
+            let out = self.reconstruct(cur);
+            return if out == cur { Plan::Review("manual review".into()) } else { Plan::Rewrite { content: out, method: "reconstruct".into() } };
         }
         if self.is_script(path) && !self.is_cfg(path) { return Plan::Review("manual review".into()); }
         if let Some(h) = history {
